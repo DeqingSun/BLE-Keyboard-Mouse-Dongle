@@ -812,6 +812,8 @@ static void performPeriodicTask( void )
      */
     SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
   }
+  
+  HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
 }
 
 /*********************************************************************
