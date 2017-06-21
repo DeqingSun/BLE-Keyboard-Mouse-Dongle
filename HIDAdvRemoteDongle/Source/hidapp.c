@@ -161,11 +161,16 @@
 
 #define HIDAPP_INPUT_RETRY_TIMEOUT            5 // ms
 
+#define HID_REPORT_BUFFER_LEN                 8
+
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
  * ------------------------------------------------------------------------------------------------
  */
-
+typedef struct {
+    uint8 epNum;
+    uint8 data[8];
+} HID_REPORT_EPDATA_t;
 
 /* ------------------------------------------------------------------------------------------------
  *                                            Macros
@@ -178,7 +183,7 @@
  */
 
 //static void hidappOutputReport( void );
-static uint8 hidappSendInReport( attHandleValueNoti_t *pNoti );
+static uint8 hidappSendInReport( );
 
 static void hidappProcessGATTMsg( gattMsgEvent_t *pMsg );
 static void hidappHandleKeys( uint8 keys, uint8 state );
@@ -187,6 +192,8 @@ static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
 static void simpleProfileChangeCB( uint8 paramID );
 
+static bool hidReportBufferAppend( uint8 ep, uint8 data0, uint8 data1, uint8 data2, uint8 data3, uint8 data4, uint8 data5, uint8 data6, uint8 data7);
+static bool hidReportBufferShift();
 
 
 /* ------------------------------------------------------------------------------------------------
@@ -198,7 +205,6 @@ static void simpleProfileChangeCB( uint8 paramID );
 //static uint8 hidappOutBuf[HIDAPP_OUTBUF_SIZE];
 
 // HID input report used for retries
-static attHandleValueNoti_t lastInReport = { 0 };
 static uint8 reportRetries = 0;
 
 // OSAL task ID assigned to the application task
@@ -290,7 +296,8 @@ static simpleProfileCBs_t hidapp_SimpleProfileCBs =
   simpleProfileChangeCB    // Charactersitic value change callback
 };
 
-
+static HID_REPORT_EPDATA_t hidReportBuffer[HID_REPORT_BUFFER_LEN];
+static uint8 hidReportBufLength = 0;
 
 
 /* ------------------------------------------------------------------------------------------------
@@ -473,7 +480,7 @@ uint16 Hidapp_ProcessEvent(uint8 taskId, uint16 events)
   if ( events & HIDAPP_EVT_REPORT_RETRY )
   {
     // Report retries event
-    if ( ( hidappSendInReport( &lastInReport ) == FALSE ) &&
+    if ( ( hidappSendInReport() == FALSE ) &&
          ( reportRetries < USB_HID_INPUT_RETRY_COUNT ) )
     {
       reportRetries++;
@@ -484,12 +491,8 @@ uint16 Hidapp_ProcessEvent(uint8 taskId, uint16 events)
     {
       // Done retrying      
       reportRetries = 0;
-      
-      // Free last report's payload
-      GATT_bm_free( (gattMsg_t *)&lastInReport, ATT_HANDLE_VALUE_NOTI );
-      
-      // Zero out all fields of last report
-      VOID osal_memset( &lastInReport, 0, sizeof( attHandleValueNoti_t ) );
+      hidReportBufferShift();
+      if (hidReportBufLength>0) osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY,(reportRetries*HIDAPP_INPUT_RETRY_TIMEOUT) );
     }
 
     return (events ^ HIDAPP_EVT_REPORT_RETRY);
@@ -563,35 +566,6 @@ static void hidappHandleKeys( uint8 keys, uint8 state )
 //  }
 //}
 
-/*********************************************************************
- *
- * @fn      hidappSuspendEnter
- *
- * @brief   Hook function to be called upon entry into USB suspend mode
- *
- * @param   none
- *
- * @return  none
- */
-void hidappSuspendEnter( void )
-{
-  // not supported
-}
-
-/*********************************************************************
- *
- * @fn      hidappSuspendExit
- *
- * @brief   Hook function to be called upon exit from USB suspend mode
- *
- * @param   none
- *
- * @return  none
- */
-void hidappSuspendExit( void )
-{
-  // not supported
-}
 
 /*********************************************************************
  * @fn      hidappProcessGATTMsg
@@ -608,36 +582,6 @@ static void hidappProcessGATTMsg( gattMsgEvent_t *pPkt )
   // Build the message first
   switch ( pPkt->method )
   {
-    case ATT_HANDLE_VALUE_NOTI://!!!!!!!!
-      // First try to send out pending HID report
-      if ( reportRetries > 0 )
-      {
-        hidappSendInReport( &lastInReport );
-        
-        // Free last report's payload
-        GATT_bm_free( (gattMsg_t *)&lastInReport, ATT_HANDLE_VALUE_NOTI );
-        
-        // Zero out all fields of last report
-        VOID osal_memset( &lastInReport, 0, sizeof( attHandleValueNoti_t ) );
-      
-        reportRetries = 0;
-        osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
-      }
-
-      // Send incoming HID report
-      if ( hidappSendInReport( &(pPkt->msg.handleValueNoti) ) == FALSE )
-      {
-        // Save report for retries later
-        osal_memcpy( &lastInReport, &(pPkt->msg.handleValueNoti), sizeof( attHandleValueNoti_t ) );
-
-        // Report's payload is part of lastInReport now so no need to free it yet
-        pPkt->msg.handleValueNoti.pValue = NULL;
-        
-        reportRetries = 1;
-        osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, HIDAPP_INPUT_RETRY_TIMEOUT );
-      }
-      break;
-
     default:
       // Unknown event
       break;
@@ -655,35 +599,22 @@ static void hidappProcessGATTMsg( gattMsgEvent_t *pPkt )
  *
  * @return  TRUE if report was sent; FALSE otherwise.
  */
-static uint8 hidappSendInReport( attHandleValueNoti_t *pNoti )
+static uint8 hidappSendInReport( )
 {
-  /*uint8 endPoint;
-
-  if( pNoti->handle == keyCharHandle )
-  {
-    // Keyboard report
-    endPoint = USB_HID_KBD_EP;
+  if (hidReportBufLength>0){
+    switch (hidReportBuffer[0].epNum){
+    case USB_HID_KBD_EP:
+      return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_KBD_EP, sizeof(KEYBOARD_IN_REPORT)) );
+      break;
+    case USB_HID_MOUSE_EP:
+      return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_MOUSE_EP, sizeof(MOUSE_IN_REPORT)) );
+      break;
+    case USB_HID_CC_EP:
+      return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_CC_EP, 0) ); //need more work HERE !!!!!
+      break;
+    }
   }
-  else if (pNoti->handle == mouseCharHandle )
-  {
-    // Mouse report
-    endPoint = USB_HID_MOUSE_EP;
-  }
-  else if ( pNoti->handle == consumerCtrlCharHandle )
-  {
-    // Consumer Control report
-    endPoint = USB_HID_CC_EP;
-  }
-  else
-  {
-    // Maybe we're still in discovery phase
-    return ( FALSE );
-  }
-
-  HalLedSet( HAL_LED_2, HAL_LED_MODE_BLINK );
-
-  return ( hidSendHidInReport(pNoti->pValue, endPoint, pNoti->len) );*/
-  return 1;//!!!!!!!!
+  return true;
 }
 
 
@@ -814,6 +745,16 @@ static void performPeriodicTask( void )
   }
   
   HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
+  
+  
+  if (hidReportBufLength==0){
+    hidReportBufferAppend(USB_HID_KBD_EP,0,0,0x04,0,0,0,0,0);
+    hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
+    reportRetries = 1;
+    osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+    osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+  }
+  
 }
 
 /*********************************************************************
@@ -855,6 +796,40 @@ static void simpleProfileChangeCB( uint8 paramID )
   }
 }
 
+static bool hidReportBufferAppend( uint8 ep, uint8 data0, uint8 data1, uint8 data2, uint8 data3, uint8 data4, uint8 data5, uint8 data6, uint8 data7){
+  if (hidReportBufLength<HID_REPORT_BUFFER_LEN){
+    hidReportBuffer[hidReportBufLength].epNum=ep;
+    hidReportBuffer[hidReportBufLength].data[0]=data0;
+    hidReportBuffer[hidReportBufLength].data[1]=data1;
+    hidReportBuffer[hidReportBufLength].data[2]=data2;
+    hidReportBuffer[hidReportBufLength].data[3]=data3;
+    hidReportBuffer[hidReportBufLength].data[4]=data4;
+    hidReportBuffer[hidReportBufLength].data[5]=data5;
+    hidReportBuffer[hidReportBufLength].data[6]=data6;
+    hidReportBuffer[hidReportBufLength].data[7]=data7;
+    hidReportBufLength=hidReportBufLength+1;
+    return true;
+  }else{
+    return false;
+  }
+}
+
+
+static bool hidReportBufferShift(){
+  if (hidReportBufLength>0){
+    hidReportBufLength=hidReportBufLength-1;
+    for (uint8 i=0;i<hidReportBufLength;i++){
+      hidReportBuffer[i]=hidReportBuffer[i+1];
+    }
+    hidReportBuffer[hidReportBufLength].epNum=0;
+    for (uint8 i=0;i<8;i++){
+      hidReportBuffer[hidReportBufLength].data[i]=0;
+    }    
+    return true;
+  }else{
+    return false;
+  }
+}
 
 /**************************************************************************************************
 **************************************************************************************************/
