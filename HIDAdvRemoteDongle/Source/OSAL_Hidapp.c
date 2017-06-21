@@ -76,9 +76,11 @@
 
 /* GATT */
 #include "gatt.h"
+   
+#include "gattservapp.h"
 
 /* Profiles */
-#include "central.h"
+#include "peripheral.h"
 
 /* Application */
 #include "hidapp.h"
@@ -103,9 +105,10 @@ const pTaskEventHandlerFn tasksArr[] =
   GAP_ProcessEvent,                                           // task 5
   SM_ProcessEvent,                                            // task 6
   GATT_ProcessEvent,                                          // task 7
-  GAPCentralRole_ProcessEvent,                                // task 8
+  GAPRole_ProcessEvent,                                       // task 8
   GAPBondMgr_ProcessEvent,                                    // task 9
-  Hidapp_ProcessEvent                                         // task 10
+  GATTServApp_ProcessEvent,                                   // task 10
+  Hidapp_ProcessEvent                                         // task 11  
 };
 
 const uint8 tasksCnt = sizeof( tasksArr ) / sizeof( tasksArr[0] );
@@ -158,11 +161,11 @@ void osalInitTasks( void )
   /* GATT Task */
   GATT_Init( taskID++ );
   
-  /* GAP Central Profile Task */
-  GAPCentralRole_Init( taskID++ );
+  /* Profiles */
+  GAPRole_Init( taskID++ );
+  GAPBondMgr_Init( taskID++ );
 
-  /* GAP Bond Manager Task */
-  GAPBondMgr_Init(taskID++ );
+  GATTServApp_Init( taskID++ );
 
   /* HID Application Task */
   Hidapp_Init( taskID );

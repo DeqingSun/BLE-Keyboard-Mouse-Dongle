@@ -1,8 +1,9 @@
 /******************************************************************************
 
- @file  hidapp.h
+ @file  devinfoservice.h
 
- @brief This file contains HID dongle sample application header file.
+ @brief This file contains the Device Information service definitions and
+        prototypes.
 
  Group: WCS, BTS
  Target Device: CC2540, CC2541
@@ -45,8 +46,8 @@
  Release Date: 2016-06-09 06:57:10
  *****************************************************************************/
 
-#ifndef HIDAPP_H
-#define HIDAPP_H
+#ifndef DEVINFOSERVICE_H
+#define DEVINFOSERVICE_H
 
 #ifdef __cplusplus
 extern "C"
@@ -61,34 +62,80 @@ extern "C"
  * CONSTANTS
  */
 
-// OSAL events the application uses
-#define HIDAPP_START_DEVICE_EVT         0x0001 // Start the application
-#define HIDAPP_PERIODIC_EVT             0x0002 // 
-#define HIDAPP_EVT_REPORT_RETRY         0x0004 // Report send retries
+// Device Information Service Parameters
+#define DEVINFO_SYSTEM_ID                 0
+#define DEVINFO_MODEL_NUMBER              1
+#define DEVINFO_SERIAL_NUMBER             2
+#define DEVINFO_FIRMWARE_REV              3
+#define DEVINFO_HARDWARE_REV              4
+#define DEVINFO_SOFTWARE_REV              5
+#define DEVINFO_MANUFACTURER_NAME         6
+#define DEVINFO_11073_CERT_DATA           7
+#define DEVINFO_PNP_ID                    8
+
+// IEEE 11073 authoritative body values
+#define DEVINFO_11073_BODY_EMPTY          0
+#define DEVINFO_11073_BODY_IEEE           1
+#define DEVINFO_11073_BODY_CONTINUA       2
+#define DEVINFO_11073_BODY_EXP            254
+
+// System ID length
+#define DEVINFO_SYSTEM_ID_LEN             8
+
+  // PnP ID length
+#define DEVINFO_PNP_ID_LEN                7
+
+/*********************************************************************
+ * TYPEDEFS
+ */
 
 /*********************************************************************
  * MACROS
  */
 
-// Macros for the HID report
-#define USB_HID_REPORT_REMOTE_INIT(_s) \
-  st((_s).data[0] = 0; (_s).data[1] = 0;)
-#define USB_HID_REPORT_REMOTE_HAS_SOME(_s) \
-  ((_s).data[0] != 0 || (_s).data[1] != 0)
+/*********************************************************************
+ * Profile Callbacks
+ */
+
 
 /*********************************************************************
- * FUNCTIONS
+ * API FUNCTIONS
  */
 
 /*
- * Task Initialization for the BLE Application
+ * DevInfo_AddService- Initializes the Device Information service by registering
+ *          GATT attributes with the GATT server.
+ *
  */
-extern void Hidapp_Init( uint8 task_id );
+
+extern bStatus_t DevInfo_AddService( void );
+
+/*********************************************************************
+ * @fn      DevInfo_SetParameter
+ *
+ * @brief   Set a Device Information parameter.
+ *
+ * @param   param - Profile parameter ID
+ * @param   len - length of data to right
+ * @param   value - pointer to data to write.  This is dependent on
+ *          the parameter ID and WILL be cast to the appropriate
+ *          data type (example: data type of uint16 will be cast to
+ *          uint16 pointer).
+ *
+ * @return  bStatus_t
+ */
+bStatus_t DevInfo_SetParameter( uint8 param, uint8 len, void *value );
 
 /*
- * Task Event Processor for the BLE Application
+ * DevInfo_GetParameter - Get a Device Information parameter.
+ *
+ *    param - Profile parameter ID
+ *    value - pointer to data to write.  This is dependent on
+ *          the parameter ID and WILL be cast to the appropriate
+ *          data type (example: data type of uint16 will be cast to
+ *          uint16 pointer).
  */
-extern uint16 Hidapp_ProcessEvent( uint8 task_id, uint16 events );
+extern bStatus_t DevInfo_GetParameter( uint8 param, void *value );
 
 /*********************************************************************
 *********************************************************************/
@@ -97,4 +144,4 @@ extern uint16 Hidapp_ProcessEvent( uint8 task_id, uint16 events );
 }
 #endif
 
-#endif // HIDAPP_H
+#endif /* DEVINFOSERVICE_H */

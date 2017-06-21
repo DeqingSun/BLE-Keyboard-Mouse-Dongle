@@ -88,9 +88,14 @@
 /* HCI */
 #include "hci.h"
 
-#include "central.h"
-#include "gapbondmgr.h"
+#include "gapgattserver.h"
 #include "gattservapp.h"
+#include "devinfoservice.h"
+#include "simpleGATTprofile.h"
+
+#include "peripheral.h"
+
+#include "gapbondmgr.h"
 
 /* Application */
 #include "hidapp.h"
@@ -100,47 +105,46 @@
  * ------------------------------------------------------------------------------------------------
  */
 
-#define OWN_ADDR                              { 0x11, 0x11, 0x11, 0x11, 0x11, 0x04 }
+// How often to perform periodic event
+#define HID_PERIODIC_EVT_PERIOD                   5000
 
-// Discovey mode (limited, general, all)
-#define DEFAULT_DISCOVERY_MODE                DEVDISC_MODE_LIMITED
+// What is the advertising interval when device is discoverable (units of 625us, 160=100ms)
+#define DEFAULT_ADVERTISING_INTERVAL          160
 
-// TRUE to use active scan
-#define DEFAULT_DISCOVERY_ACTIVE_SCAN         TRUE
+// Limited discoverable mode advertises for 30.72s, and then stops
+// General discoverable mode advertises indefinitely
 
-// TRUE to use white list during discovery
-#define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
+#if defined ( CC2540_MINIDK )
+#define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_LIMITED
+#else
+#define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_GENERAL
+#endif  // defined ( CC2540_MINIDK )
 
-#define DEFAULT_LINK_HIGH_DUTY_CYCLE          FALSE
+// Minimum connection interval (units of 1.25ms, 80=100ms) if automatic parameter update request is enabled
+#define DEFAULT_DESIRED_MIN_CONN_INTERVAL     80
 
-// Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 900
+// Maximum connection interval (units of 1.25ms, 800=1000ms) if automatic parameter update request is enabled
+#define DEFAULT_DESIRED_MAX_CONN_INTERVAL     800
 
-// Initiate connection timer for application
-#define INIT_CONNECT_TIMEOUT                  1000
+// Slave latency to use if automatic parameter update request is enabled
+#define DEFAULT_DESIRED_SLAVE_LATENCY         0
 
-// Number of scans when device not bonded
-#define MAX_NUM_SCANS                         5
+// Supervision timeout value (units of 10ms, 1000=10s) if automatic parameter update request is enabled
+#define DEFAULT_DESIRED_CONN_TIMEOUT          1000
 
-// Default passcode
-#define DEFAULT_PASSCODE                      0
+// Whether to enable automatic parameter update request when a connection is formed
+#define DEFAULT_ENABLE_UPDATE_REQUEST         TRUE
 
-// Default GAP pairing mode
-#define DEFAULT_PAIRING_MODE                  GAPBOND_PAIRING_MODE_INITIATE // GAPBOND_PAIRING_MODE_WAIT_FOR_REQ
+// Connection Pause Peripheral time value (in seconds)
+#define DEFAULT_CONN_PAUSE_PERIPHERAL         6
 
-// Default MITM mode (TRUE to require passcode or OOB when pairing)
-#define DEFAULT_MITM_MODE                     FALSE
+// Company Identifier: Texas Instruments Inc. (13)
+#define TI_COMPANY_ID                         0x000D
 
-// Default bonding mode, TRUE to bond
-#define DEFAULT_BONDING_MODE                  TRUE
+#define INVALID_CONNHANDLE                    0xFFFF
 
-#define DEFAULT_IO_CAPABILITIES               GAPBOND_IO_CAP_NO_INPUT_NO_OUTPUT
-
-#define DEFAULT_MAX_SCAN_RES                  8
-
-#define APP_CONN_INTERVAL                     8      // 10ms
-#define APP_SLAVE_LATENCY                     0      // Initially 0 for fast connection. //49     // 49 slave latency (500ms effective interval)
-#define APP_CONN_TIMEOUT                      500    // 1.6s supervision timeout
+// Length of bd addr as a string
+#define B_ADDR_STR_LEN                        15
 
 // output report buffer size
 #define HIDAPP_OUTBUF_SIZE                    3
@@ -157,42 +161,11 @@
 
 #define HIDAPP_INPUT_RETRY_TIMEOUT            5 // ms
 
-// Service Change flags
-#define NO_CHANGE                             0x00
-#define CHANGE_OCCURED                        0x01
-
-// Gap Bond Manager States
-#define UNPAIRED_STATE                        0x00
-#define PAIRED_BONDED_STATE                   0x01
-
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
  * ------------------------------------------------------------------------------------------------
  */
-typedef struct
-{
-  // Service and Characteristic discovery variables.
-  uint16 mouseCharHandle;
-  uint16 keyCharHandle;
-  uint16 consumerCtrlCharHandle;
 
-  // CCC's of the notifications
-  uint16 mouseCCCHandle;
-  uint16 keyCCCHandle;
-  uint16 consumerCtrlCCCHandle;
-  uint16 svcChangeHandle;
-  uint8  lastRemoteAddr[B_ADDR_LEN];
-} hidappHandleInfo_t;
-
-// enumerated type for current central BLE
-enum
-{
-  BLE_STATE_IDLE,
-  BLE_STATE_SCANNING,
-  BLE_STATE_CONNECTING,
-  BLE_STATE_CONNECTED,
-  BLE_STATE_DISCONNECTING
-};
 
 /* ------------------------------------------------------------------------------------------------
  *                                            Macros
@@ -203,29 +176,18 @@ enum
  *                                           Local Functions
  * ------------------------------------------------------------------------------------------------
  */
-static void hidappStart( void );
+
 //static void hidappOutputReport( void );
 static uint8 hidappSendInReport( attHandleValueNoti_t *pNoti );
-static void hidappEstablishLink( uint8 whiteList, uint8 addrType, uint8 *remoteAddr );
-static void hidappStartDiscovery( void );
-static void hidappDiscoverDevices( void );
-static void hidappSetIdle( void );
+
 static void hidappProcessGATTMsg( gattMsgEvent_t *pMsg );
 static void hidappHandleKeys( uint8 keys, uint8 state );
-static void hidappEnableNotification( uint16 connHandle, uint16 attrHandle );
-static void hidappDiscoverService( uint16 connHandle, uint16 svcUuid );
-static bool hidappFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen );
-static uint8 hidappFindHIDRemote( uint8* pData, uint8 length );
-static void hidappSaveHandles( void );
-static void hidappEraseHandles( void );
-static uint8 hidappBondCount( void );
 
-// Callback functions
-static uint8 hidappCentralEventCB( gapCentralRoleEvent_t *p );
-static void hidappPairStateCB( uint16 connHandle, uint8 state, uint8 status );
+static void peripheralStateNotificationCB( gaprole_States_t newState );
+static void performPeriodicTask( void );
+static void simpleProfileChangeCB( uint8 paramID );
 
-void hidappSuspendEnter( void );
-void hidappSuspendExit( void );
+
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Local Variables
@@ -242,60 +204,94 @@ static uint8 reportRetries = 0;
 // OSAL task ID assigned to the application task
 static uint8 hidappTaskId;
 
-// GAP Role Callbacks
-static gapCentralRoleCB_t hidApp_centralCBs =
+static gaprole_States_t gapProfileState = GAPROLE_INIT;
+
+// GAP - SCAN RSP data (max size = 31 bytes)
+static uint8 scanRspData[] =
 {
-  NULL,                 // When a valid RSSI is read from controllerNULL,
-  hidappCentralEventCB, // Profile State Change Callbacks
+  // complete name
+  0x14,   // length of this data
+  GAP_ADTYPE_LOCAL_NAME_COMPLETE,
+  0x53,   // 'S'
+  0x69,   // 'i'
+  0x6d,   // 'm'
+  0x70,   // 'p'
+  0x6c,   // 'l'
+  0x65,   // 'e'
+  0x42,   // 'B'
+  0x4c,   // 'L'
+  0x45,   // 'E'
+  0x50,   // 'P'
+  0x65,   // 'e'
+  0x72,   // 'r'
+  0x69,   // 'i'
+  0x70,   // 'p'
+  0x68,   // 'h'
+  0x65,   // 'e'
+  0x72,   // 'r'
+  0x61,   // 'a'
+  0x6c,   // 'l'
+
+  // connection interval range
+  0x05,   // length of this data
+  GAP_ADTYPE_SLAVE_CONN_INTERVAL_RANGE,
+  LO_UINT16( DEFAULT_DESIRED_MIN_CONN_INTERVAL ),   // 100ms
+  HI_UINT16( DEFAULT_DESIRED_MIN_CONN_INTERVAL ),
+  LO_UINT16( DEFAULT_DESIRED_MAX_CONN_INTERVAL ),   // 1s
+  HI_UINT16( DEFAULT_DESIRED_MAX_CONN_INTERVAL ),
+
+  // Tx power level
+  0x02,   // length of this data
+  GAP_ADTYPE_POWER_LEVEL,
+  0       // 0dBm
+};
+
+// GAP - Advertisement data (max size = 31 bytes, though this is
+// best kept short to conserve power while advertisting)
+static uint8 advertData[] =
+{
+  // Flags; this sets the device to use limited discoverable
+  // mode (advertises for 30 seconds at a time) instead of general
+  // discoverable mode (advertises indefinitely)
+  0x02,   // length of this data
+  GAP_ADTYPE_FLAGS,
+  DEFAULT_DISCOVERABLE_MODE | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
+
+  // service UUID, to notify central devices what services are included
+  // in this peripheral
+  0x03,   // length of this data
+  GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
+  LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
+  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),
+
+};
+
+// GAP GATT Attributes
+static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "Simple BLE Peripheral";
+
+
+// GAP Role Callbacks
+static gapRolesCBs_t hidapp_PeripheralCBs =
+{
+  peripheralStateNotificationCB,  // Profile State Change Callbacks
+  NULL                            // When a valid RSSI is read from controller (not used by application)
 };
 
 // GAP Bond Manager Callbacks
-gapBondCBs_t gapBondCBs =
+static gapBondCBs_t hidapp_BondMgrCBs =
 {
-  NULL,                 // Passcode callback
-  hidappPairStateCB,    // Pairing state callback
+  NULL,                     // Passcode callback (not used by application)
+  NULL                      // Pairing / Bonding state Callback (not used by application)
 };
 
-// Application state
-static uint8 hidappBLEState = BLE_STATE_IDLE;
+// Simple GATT Profile Callbacks
+static simpleProfileCBs_t hidapp_SimpleProfileCBs =
+{
+  simpleProfileChangeCB    // Charactersitic value change callback
+};
 
-static uint16 connHandle = INVALID_CONNHANDLE;
 
-// Service and Characteristic discovery variables.
-static uint16 mouseCharHandle        = GATT_INVALID_HANDLE;
-static uint16 keyCharHandle          = GATT_INVALID_HANDLE;
-static uint16 consumerCtrlCharHandle = GATT_INVALID_HANDLE;
 
-// CCC's of the notifications
-static uint16 mouseCCCHandle         = GATT_INVALID_HANDLE;
-static uint16 keyCCCHandle           = GATT_INVALID_HANDLE;
-static uint16 consumerCtrlCCCHandle  = GATT_INVALID_HANDLE;
-
-// Service Change Handle
-static uint16 serviceChangeHandle = GATT_INVALID_HANDLE;
-
-static uint8 serviceDiscComplete = FALSE;
-
-static uint8 remoteAddr[B_ADDR_LEN] = {0,0,0,0,0,0};
-
-// Handle info saved here after connection to skip service discovery.
-static hidappHandleInfo_t remoteHandles;
-
-static uint8 serviceChange = NO_CHANGE;
-
-static uint8 gapBondMgrState = UNPAIRED_STATE;
-
-static uint16 serviceToDiscover = GATT_INVALID_HANDLE;
-
-static uint8 enableCCCDs = TRUE;
-
-// Variables used for service/attribute discovery
-static attReadByTypeReq_t readReq;
-static attAttrType_t readReqType;
-static uint16 serviceStartHandle;
-static uint16 serviceEndHandle;
-
-static uint8 numScans = 0;
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Global Variables
@@ -317,78 +313,96 @@ void Hidapp_Init( uint8 taskId )
   // save task ID assigned by OSAL
   hidappTaskId = taskId;
 
-  // Setup Central Profile
+  // Setup the GAP
+  VOID GAP_SetParamValue( TGAP_CONN_PAUSE_PERIPHERAL, DEFAULT_CONN_PAUSE_PERIPHERAL );
+  
+  // Setup the GAP Peripheral Role Profile
   {
-    uint8 scanRes = DEFAULT_MAX_SCAN_RES;
-    VOID GAPCentralRole_SetParameter( GAPCENTRALROLE_MAX_SCAN_RES, sizeof( uint8 ), &scanRes );
+    // For other hardware platforms, device starts advertising upon initialization
+    uint8 initial_advertising_enable = TRUE;
+
+    // By setting this to zero, the device will go into the waiting state after
+    // being discoverable for 30.72 second, and will not being advertising again
+    // until the enabler is set back to TRUE
+    uint16 gapRole_AdvertOffTime = 0;
+
+    uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
+    uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
+    uint16 desired_max_interval = DEFAULT_DESIRED_MAX_CONN_INTERVAL;
+    uint16 desired_slave_latency = DEFAULT_DESIRED_SLAVE_LATENCY;
+    uint16 desired_conn_timeout = DEFAULT_DESIRED_CONN_TIMEOUT;
+
+    // Set the GAP Role Parameters
+    GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
+    GAPRole_SetParameter( GAPROLE_ADVERT_OFF_TIME, sizeof( uint16 ), &gapRole_AdvertOffTime );
+
+    GAPRole_SetParameter( GAPROLE_SCAN_RSP_DATA, sizeof ( scanRspData ), scanRspData );
+    GAPRole_SetParameter( GAPROLE_ADVERT_DATA, sizeof( advertData ), advertData );
+
+    GAPRole_SetParameter( GAPROLE_PARAM_UPDATE_ENABLE, sizeof( uint8 ), &enable_update_request );
+    GAPRole_SetParameter( GAPROLE_MIN_CONN_INTERVAL, sizeof( uint16 ), &desired_min_interval );
+    GAPRole_SetParameter( GAPROLE_MAX_CONN_INTERVAL, sizeof( uint16 ), &desired_max_interval );
+    GAPRole_SetParameter( GAPROLE_SLAVE_LATENCY, sizeof( uint16 ), &desired_slave_latency );
+    GAPRole_SetParameter( GAPROLE_TIMEOUT_MULTIPLIER, sizeof( uint16 ), &desired_conn_timeout );
   }
 
-  // Setup GAP
+  // Set the GAP Characteristics
+  GGS_SetParameter( GGS_DEVICE_NAME_ATT, GAP_DEVICE_NAME_LEN, attDeviceName );
+
+  // Set advertising interval
   {
-    VOID GAP_SetParamValue( TGAP_GEN_DISC_SCAN, DEFAULT_SCAN_DURATION );
-    VOID GAP_SetParamValue( TGAP_LIM_DISC_SCAN, DEFAULT_SCAN_DURATION );
+    uint16 advInt = DEFAULT_ADVERTISING_INTERVAL;
 
-    // Set scanning interval, 48 = 30ms
-    VOID GAP_SetParamValue( TGAP_LIM_DISC_SCAN_INT, 48 );
-
-    // Set scannng window, 48 = 30ms
-    VOID GAP_SetParamValue( TGAP_LIM_DISC_SCAN_WIND, 48 );
+    GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MIN, advInt );
+    GAP_SetParamValue( TGAP_LIM_DISC_ADV_INT_MAX, advInt );
+    GAP_SetParamValue( TGAP_GEN_DISC_ADV_INT_MIN, advInt );
+    GAP_SetParamValue( TGAP_GEN_DISC_ADV_INT_MAX, advInt );
   }
 
   // Setup the GAP Bond Manager
   {
-    uint32 passkey = DEFAULT_PASSCODE;
+    uint32 passkey = 0; // passkey "000000"
     uint8 pairMode = GAPBOND_PAIRING_MODE_WAIT_FOR_REQ;
-    uint8 mitm = DEFAULT_MITM_MODE;
-    uint8 ioCap = DEFAULT_IO_CAPABILITIES;
-    uint8 bonding = DEFAULT_BONDING_MODE;
-    uint8 autoSync = TRUE;
-    uint8 bondFailAction = GAPBOND_FAIL_TERMINATE_ERASE_BONDS;
-
-    VOID GAPBondMgr_SetParameter( GAPBOND_DEFAULT_PASSCODE, sizeof( uint32 ), &passkey );
-    VOID GAPBondMgr_SetParameter( GAPBOND_PAIRING_MODE, sizeof( uint8 ), &pairMode );
-    VOID GAPBondMgr_SetParameter( GAPBOND_MITM_PROTECTION, sizeof( uint8 ), &mitm );
-    VOID GAPBondMgr_SetParameter( GAPBOND_IO_CAPABILITIES, sizeof( uint8 ), &ioCap );
-    VOID GAPBondMgr_SetParameter( GAPBOND_BONDING_ENABLED, sizeof( uint8 ), &bonding );
-    VOID GAPBondMgr_SetParameter( GAPBOND_AUTO_SYNC_WL, sizeof( uint8 ), &autoSync );
-    VOID GAPBondMgr_SetParameter( GAPBOND_BOND_FAIL_ACTION, sizeof( uint8 ), &bondFailAction );
+    uint8 mitm = TRUE;
+    uint8 ioCap = GAPBOND_IO_CAP_NO_INPUT_NO_OUTPUT;
+    uint8 bonding = TRUE;
+    GAPBondMgr_SetParameter( GAPBOND_DEFAULT_PASSCODE, sizeof ( uint32 ), &passkey );
+    GAPBondMgr_SetParameter( GAPBOND_PAIRING_MODE, sizeof ( uint8 ), &pairMode );
+    GAPBondMgr_SetParameter( GAPBOND_MITM_PROTECTION, sizeof ( uint8 ), &mitm );
+    GAPBondMgr_SetParameter( GAPBOND_IO_CAPABILITIES, sizeof ( uint8 ), &ioCap );
+    GAPBondMgr_SetParameter( GAPBOND_BONDING_ENABLED, sizeof ( uint8 ), &bonding );
   }
 
-  // USB suspend entry/exit hook function setup
-  pFnSuspendEnterHook = hidappSuspendEnter;
-  pFnSuspendExitHook = hidappSuspendExit;
+  // Initialize GATT attributes
+  GGS_AddService( GATT_ALL_SERVICES );            // GAP
+  GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
+  DevInfo_AddService();                           // Device Information Service
+  SimpleProfile_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
 
-  // Initialize GATT Client
-  VOID GATT_InitClient();
-
-  // Register to receive notifications
-  GATT_RegisterForInd( hidappTaskId );
-
-  // Set connection parameters:
+  // Setup the SimpleProfile Characteristic Values
   {
-    uint16 connectionInterval = APP_CONN_INTERVAL;
-    uint16 slaveLatency = APP_SLAVE_LATENCY;
-    uint16 timeout = APP_CONN_TIMEOUT;
-
-    VOID GAP_SetParamValue( TGAP_CONN_EST_INT_MIN, connectionInterval );
-    VOID GAP_SetParamValue( TGAP_CONN_EST_INT_MAX, connectionInterval );
-    VOID GAP_SetParamValue( TGAP_CONN_EST_LATENCY, slaveLatency );
-    VOID GAP_SetParamValue( TGAP_CONN_EST_SUPERV_TIMEOUT, timeout );
+    uint8 charValue1 = 1;
+    uint8 charValue2 = 2;
+    uint8 charValue3 = 3;
+    uint8 charValue4 = 4;
+    uint8 charValue5[SIMPLEPROFILE_CHAR5_LEN] = { 1, 2, 3, 4, 5 };
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR1, sizeof ( uint8 ), &charValue1 );
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR2, sizeof ( uint8 ), &charValue2 );
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR3, sizeof ( uint8 ), &charValue3 );
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof ( uint8 ), &charValue4 );
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR5, SIMPLEPROFILE_CHAR5_LEN, charValue5 );
   }
 
-  // Register callbacks with the GAP Bond Manager.
-  GAPBondMgr_Register( &gapBondCBs );
+  // Register callback with SimpleGATTprofile
+  VOID SimpleProfile_RegisterAppCBs( &hidapp_SimpleProfileCBs );
 
-  //HalKeyConfig(HAL_KEY_INTERRUPT_ENABLE, hidappHandleKeys);
-  RegisterForKeys( hidappTaskId );
+  // Enable clock divide on halt
+  // This reduces active current while radio is active and CC254x MCU
+  // is halted
+  HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_ENABLE_CLK_DIVIDE_ON_HALT );
 
-  // set up continued initialization from within OSAL task loop
-  VOID osal_start_timerEx( taskId, HIDAPP_EVT_START, 100 );
-
-  // Clear remote data
-  hidappEraseHandles();
-
-  VOID HCI_EXT_HaltDuringRfCmd( HCI_EXT_HALT_DURING_RF_DISABLE );
+  // Setup a delayed profile startup
+  osal_set_event( hidappTaskId, HIDAPP_START_DEVICE_EVT );
 }
 
 /*********************************************************************
@@ -442,11 +456,18 @@ uint16 Hidapp_ProcessEvent(uint8 taskId, uint16 events)
     return (events ^ SYS_EVENT_MSG);
   }
 
-  if ( events & HIDAPP_EVT_START )
+  if ( events & HIDAPP_START_DEVICE_EVT )
   {
-    hidappStart();
+    // Start the Device
+    VOID GAPRole_StartDevice( &hidapp_PeripheralCBs );
 
-    return (events ^ HIDAPP_EVT_START);
+    // Start Bond Manager
+    VOID GAPBondMgr_Register( &hidapp_BondMgrCBs );
+
+    // Set timer for first periodic event
+    osal_start_timerEx( hidappTaskId, HIDAPP_PERIODIC_EVT, HID_PERIODIC_EVT_PERIOD );
+
+    return (events ^ HIDAPP_START_DEVICE_EVT);
   }
 
   if ( events & HIDAPP_EVT_REPORT_RETRY )
@@ -474,22 +495,20 @@ uint16 Hidapp_ProcessEvent(uint8 taskId, uint16 events)
     return (events ^ HIDAPP_EVT_REPORT_RETRY);
   }
 
-  if ( events & HIDAPP_EVT_START_DISCOVERY )
+  if ( events & HIDAPP_PERIODIC_EVT )
   {
-    // Start initial discovery
-    hidappStartDiscovery();
+    // Restart timer
+    if ( HID_PERIODIC_EVT_PERIOD )
+    {
+      osal_start_timerEx( hidappTaskId, HIDAPP_PERIODIC_EVT, HID_PERIODIC_EVT_PERIOD );
+    }
 
-    return ( events ^ HIDAPP_EVT_START_DISCOVERY );
+    // Perform periodic application task
+    performPeriodicTask();
+
+    return (events ^ HIDAPP_PERIODIC_EVT);
   }
-
-  if ( events & HIDAPP_EVT_INIT_CONNECT )
-  {
-    // Still trying to re-connect
-    HalLedSet( HAL_LED_1, HAL_LED_MODE_BLINK ); // green led
-
-    return ( events ^ HIDAPP_EVT_INIT_CONNECT );
-  }
-
+  
   return ( 0 );  /* Discard unknown events. */
 }
 
@@ -511,53 +530,13 @@ static void hidappHandleKeys( uint8 keys, uint8 state )
 
   if (keys & HAL_KEY_SW_1)
   {
-    // If bonds exist, erase all of them
-    if ( ( hidappBondCount() > 0 ) && ( hidappBLEState != BLE_STATE_CONNECTED ) )
-    {
-      if ( hidappBLEState == BLE_STATE_CONNECTING )
-      {
-        hidappBLEState = BLE_STATE_DISCONNECTING;
-        VOID GAPCentralRole_TerminateLink( GAP_CONNHANDLE_INIT );
-      }
 
-      VOID GAPBondMgr_SetParameter( GAPBOND_ERASE_ALLBONDS, 0, NULL );
-    }
   }
 
   if (keys & HAL_KEY_SW_2)
   {
-    if ( hidappBLEState == BLE_STATE_CONNECTED )
-    {
-      hidappBLEState = BLE_STATE_DISCONNECTING;
-      VOID GAPCentralRole_TerminateLink( connHandle );
-    }
-    else if ( hidappBLEState == BLE_STATE_IDLE )
-    {
-      #if defined ( NANO_DONGLE )
-
-      HalLedSet( HAL_LED_2, HAL_LED_MODE_OFF ); // red led
-
-      // Notify our task to start initial discovey
-      osal_set_event( hidappTaskId, HIDAPP_EVT_START_DISCOVERY );
-
-      #endif //  #if defined ( NANO_DONGLE )
-    }
+   
   }
-}
-
-/*********************************************************************
- *
- * @fn      hidappStart
- *
- * @brief   Start up the application
- *
- * @param   None
- *
- * @return  None
- */
-static void hidappStart(void)
-{
-  GAPCentralRole_StartDevice( &hidApp_centralCBs );
 }
 
 ///*********************************************************************
@@ -629,7 +608,7 @@ static void hidappProcessGATTMsg( gattMsgEvent_t *pPkt )
   // Build the message first
   switch ( pPkt->method )
   {
-    case ATT_HANDLE_VALUE_NOTI:
+    case ATT_HANDLE_VALUE_NOTI://!!!!!!!!
       // First try to send out pending HID report
       if ( reportRetries > 0 )
       {
@@ -659,149 +638,6 @@ static void hidappProcessGATTMsg( gattMsgEvent_t *pPkt )
       }
       break;
 
-    case ATT_FIND_BY_TYPE_VALUE_RSP:
-      // Response from GATT_DiscPrimaryServiceByUUID
-      // Service found, store handles
-      if ( pPkt->msg.findByTypeValueRsp.numInfo > 0 )
-      {
-        serviceStartHandle = 
-          ATT_ATTR_HANDLE(pPkt->msg.findByTypeValueRsp.pHandlesInfo, 0);
-        serviceEndHandle = 
-          ATT_GRP_END_HANDLE(pPkt->msg.findByTypeValueRsp.pHandlesInfo, 0);
-      }
-      // If procedure complete
-      else if ( pPkt->hdr.status == bleProcedureComplete )
-      {
-        if ( serviceStartHandle != 0 )
-        {
-          if ( serviceToDiscover == GATT_SERVICE_UUID )
-          {
-            // Begin the search for characteristic handle of the service
-            readReq.startHandle = serviceStartHandle;
-            readReq.endHandle = serviceEndHandle;
-            readReqType.len = 2;
-            readReqType.uuid[0] = LO_UINT16(SERVICE_CHANGED_UUID);
-            readReqType.uuid[1] = HI_UINT16(SERVICE_CHANGED_UUID);
-            readReq.type = readReqType;
-
-            GATT_DiscCharsByUUID(connHandle, &readReq, hidappTaskId );
-          }
-          else if ( serviceToDiscover == HID_SERV_UUID )
-          {
-            // Discover all characteristics
-            GATT_DiscAllChars( connHandle, serviceStartHandle, serviceEndHandle, hidappTaskId );
-          }
-        }
-      }
-      break;
-
-    case ATT_READ_BY_TYPE_RSP:
-      // Response from Discover all Characteristics.
-      // Success indicates packet with characteristic discoveries.
-      if ( pPkt->hdr.status == SUCCESS )
-      {
-        attReadByTypeRsp_t *pRsp = &pPkt->msg.readByTypeRsp;
-        uint8 idx = 0;
-
-        if ( serviceToDiscover == GATT_SERVICE_UUID )
-        {
-          // We have discovered the GATT Service Characteristic handle
-          serviceChangeHandle = BUILD_UINT16( pRsp->pDataList[3],
-                                              pRsp->pDataList[4] );
-          
-          // Break to skip next part, it doesn't apply here
-          break;
-        }
-
-        // Search characteristics for those with notification permissions.
-        while( idx < ((pRsp->numPairs * pRsp->len) - 1) )
-        {
-          // Check permissions of characteristic for notification permission
-          if ( (pRsp->pDataList[idx+2] & GATT_PROP_NOTIFY ) )
-          {
-            uint16* pHandle = (mouseCharHandle == GATT_INVALID_HANDLE) ? &mouseCharHandle : &keyCharHandle ;
-
-            if ( pHandle == &keyCharHandle && consumerCtrlCharHandle == GATT_INVALID_HANDLE )
-            {
-              pHandle = ( keyCharHandle == GATT_INVALID_HANDLE ) ? &keyCharHandle : &consumerCtrlCharHandle;
-            }
-
-            if ( *pHandle == GATT_INVALID_HANDLE )
-            {
-              *pHandle = BUILD_UINT16( pRsp->pDataList[idx+3], pRsp->pDataList[idx+4] );
-            }
-          }
-
-          idx += pRsp->len;
-        }
-      }
-      // This indicates that there is no more characteristic data
-      // to be discovered within the given handle range.
-      else if ( pPkt->hdr.status == bleProcedureComplete )
-      {
-        if ( serviceToDiscover == GATT_SERVICE_UUID )
-        {
-          // Begin Service Discovery of HID Service
-          serviceToDiscover = HID_SERV_UUID;
-          hidappDiscoverService( connHandle, HID_SERV_UUID );
-          // Break to skip next part, it doesn't apply yet.
-          break;
-        }
-
-        if ( enableCCCDs == TRUE )
-        {
-          mouseCCCHandle = mouseCharHandle + 1;
-
-          // Begin configuring the characteristics for notifications
-          hidappEnableNotification( connHandle, mouseCCCHandle );
-        }
-        else
-        {
-          serviceDiscComplete = TRUE;
-        }
-      }
-      break;
-
-    case ATT_WRITE_RSP:
-      if ( pPkt->hdr.status == SUCCESS && !serviceDiscComplete )
-      {
-        uint16 handle = ( keyCCCHandle == GATT_INVALID_HANDLE ) ?
-                        ( keyCCCHandle = keyCharHandle + 1 ) :
-                        ( consumerCtrlCCCHandle = consumerCtrlCharHandle + 1 );
-
-        hidappEnableNotification( connHandle, handle );
-
-        if ( consumerCtrlCCCHandle != GATT_INVALID_HANDLE)
-        {
-          serviceDiscComplete = TRUE;
-        }
-      }
-      break;
-
-    // Service Change indication
-    case ATT_HANDLE_VALUE_IND:
-      // Note: this logic assumes that the only indications that will be sent
-      //       will come from that GATT Service Changed Characteristic
-      if ( pPkt->hdr.status == SUCCESS )
-      {
-        serviceChange = CHANGE_OCCURED;
-
-        // Acknowledge receipt of indication
-        ATT_HandleValueCfm( pPkt->connHandle );
-
-        // Handles in server have changed while devices are connected
-        if ( ( gapBondMgrState == PAIRED_BONDED_STATE ) &&
-            ( serviceChangeHandle == pPkt->msg.handleValueInd.handle ) )
-        {
-          // Begin Service Discovery of HID Service
-          serviceToDiscover = HID_SERV_UUID;
-          hidappDiscoverService( connHandle, HID_SERV_UUID );
-
-          serviceChange = NO_CHANGE;
-        }
-      }
-      break;
-
     default:
       // Unknown event
       break;
@@ -821,7 +657,7 @@ static void hidappProcessGATTMsg( gattMsgEvent_t *pPkt )
  */
 static uint8 hidappSendInReport( attHandleValueNoti_t *pNoti )
 {
-  uint8 endPoint;
+  /*uint8 endPoint;
 
   if( pNoti->handle == keyCharHandle )
   {
@@ -846,592 +682,177 @@ static uint8 hidappSendInReport( attHandleValueNoti_t *pNoti )
 
   HalLedSet( HAL_LED_2, HAL_LED_MODE_BLINK );
 
-  return ( hidSendHidInReport(pNoti->pValue, endPoint, pNoti->len) );
+  return ( hidSendHidInReport(pNoti->pValue, endPoint, pNoti->len) );*/
+  return 1;//!!!!!!!!
 }
 
+
+
 /*********************************************************************
- * @fn      hidappCentralEventCB
+ * @fn      peripheralStateNotificationCB
  *
  * @brief   Notification from the profile of a state change.
  *
- * @param   pEvent - new role event
+ * @param   newState - new state
  *
- * @return  TRUE if safe to deallocate event message, FALSE otherwise.
+ * @return  none
  */
-static uint8 hidappCentralEventCB( gapCentralRoleEvent_t *pEvent )
+static void peripheralStateNotificationCB( gaprole_States_t newState )
 {
-  static uint8 addrType;
-  static uint8 peerDeviceFound = FALSE;
-
-  switch( pEvent->gap.opcode )
+  switch ( newState )
   {
-    case GAP_DEVICE_INIT_DONE_EVENT:
+    case GAPROLE_STARTED:
       {
-        gapDeviceInitDoneEvent_t *pEvt = (gapDeviceInitDoneEvent_t *)pEvent;
+        uint8 ownAddress[B_ADDR_LEN];
+        uint8 systemId[DEVINFO_SYSTEM_ID_LEN];
 
-        // See if device has a valid BD Address
-        if ( osal_isbufset( pEvt->devAddr, 0xFF, B_ADDR_LEN ) == FALSE )
-        {
-          #if defined ( NANO_DONGLE )
+        GAPRole_GetParameter(GAPROLE_BD_ADDR, ownAddress);
 
-          if ( hidappBondCount() > 0 )
-          {
-            // Initiate connection
-            hidappEstablishLink( TRUE, addrType, remoteAddr );
-          }
-          else
-          {
-            // Sit idle till ask to scan
-            hidappSetIdle();
-          }
+        // use 6 bytes of device address for 8 bytes of system ID value
+        systemId[0] = ownAddress[0];
+        systemId[1] = ownAddress[1];
+        systemId[2] = ownAddress[2];
 
-          #endif //  #if defined ( NANO_DONGLE )
-        }
-        else
-        {
-          uint8 ownBDaddr[] = OWN_ADDR;
+        // set middle bytes to zero
+        systemId[4] = 0x00;
+        systemId[3] = 0x00;
 
-          // An old CC2540 USB Dongle has all 0xFF's for its BD Address so
-          // just use the hard-coded address in that case.
-          HCI_EXT_SetBDADDRCmd( ownBDaddr );
+        // shift three bytes up
+        systemId[7] = ownAddress[5];
+        systemId[6] = ownAddress[4];
+        systemId[5] = ownAddress[3];
 
-          // Re-initialize the device with the new address
-          osal_set_event( hidappTaskId, HIDAPP_EVT_START );
-        }
+        DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
+
       }
       break;
 
-    case GAP_DEVICE_INFO_EVENT:
-      // Goes here before entering GAP_DEVICE_DISCOVERY_EVENT
-
-      // Read advertising/scan response data
-      // if it contains HID remote, end service discovery
-      if ( hidappFindSvcUuid( HID_SERV_UUID,
-                              pEvent->deviceInfo.pEvtData,
-                              pEvent->deviceInfo.dataLen ) )
+    case GAPROLE_ADVERTISING:
       {
-        // Record peer devices address data
-        addrType = pEvent->deviceInfo.addrType;
-        osal_memcpy( remoteAddr, pEvent->deviceInfo.addr, B_ADDR_LEN );
-
-        peerDeviceFound = TRUE;
-      }
-
-      if ( ( peerDeviceFound == TRUE ) &&
-           ( pEvent->deviceInfo.eventType == GAP_ADRPT_SCAN_RSP ) &&
-           hidappFindHIDRemote( pEvent->deviceInfo.pEvtData,
-                                pEvent->deviceInfo.dataLen ) )
-      {
-        // End device discovery
-        VOID GAPCentralRole_CancelDiscovery();
       }
       break;
 
-    case GAP_DEVICE_DISCOVERY_EVENT:
-      // If we have found a connectable device, establish a connection
-      if ( peerDeviceFound == TRUE )
-      {
-        hidappEstablishLink( FALSE, addrType, remoteAddr );
+      
+      
+    case GAPROLE_CONNECTED:
+      {        
 
-        peerDeviceFound = FALSE;
-        numScans = 0;
-      }
-      else if ( numScans > 0 )
-      {
-        numScans--;
-
-        // Scan again
-        hidappDiscoverDevices();
-      }
-      else
-      {
-        // Go idle
-        hidappSetIdle();
       }
       break;
 
-    case GAP_LINK_ESTABLISHED_EVENT:
-      // Cancel initiate connection timer
-      VOID osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_INIT_CONNECT );
-
-      if ( pEvent->gap.hdr.status == SUCCESS )
+    case GAPROLE_CONNECTED_ADV:
       {
-        hidappBLEState = BLE_STATE_CONNECTED;
 
-        HalLedSet( HAL_LED_1, HAL_LED_MODE_ON );  // green led
-
-        connHandle = ((gapEstLinkReqEvent_t*)pEvent)->connectionHandle;
       }
-      else if ( hidappBondCount() > 0 )
+      break;      
+    case GAPROLE_WAITING:
       {
-        // Re-initiate connection
-        hidappEstablishLink( TRUE, addrType, remoteAddr );
-      }
-      else
-      {
-        // Go idle
-        hidappSetIdle();
+
       }
       break;
 
-    case GAP_LINK_TERMINATED_EVENT:
-      // Cancel initiate connection timer
-      VOID osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_INIT_CONNECT );
-
-      HalLedSet( HAL_LED_1, HAL_LED_MODE_OFF ); // green led
-
-      hidappBLEState = BLE_STATE_IDLE;
-      gapBondMgrState = UNPAIRED_STATE;
-      connHandle = INVALID_CONNHANDLE;
-
-      if ( serviceDiscComplete == TRUE )
+    case GAPROLE_WAITING_AFTER_TIMEOUT:
       {
-        // Remember the address of the last connected remote
-        osal_memcpy( remoteHandles.lastRemoteAddr, remoteAddr, B_ADDR_LEN );
 
-        // Save handle information
-        hidappSaveHandles();
       }
+      break;
 
-      // Invalidate service discovery variables.
-      serviceDiscComplete    = FALSE;
-      mouseCharHandle        = GATT_INVALID_HANDLE;
-      keyCharHandle          = GATT_INVALID_HANDLE;
-      consumerCtrlCharHandle = GATT_INVALID_HANDLE;
-
-      mouseCCCHandle         = GATT_INVALID_HANDLE;
-      keyCCCHandle           = GATT_INVALID_HANDLE;
-      consumerCtrlCCCHandle  = GATT_INVALID_HANDLE;
-      serviceChangeHandle    = GATT_INVALID_HANDLE;
-      serviceToDiscover      = GATT_INVALID_HANDLE;
-
-      enableCCCDs = TRUE;
-
-      if ( hidappBondCount() > 0 )
+    case GAPROLE_ERROR:
       {
-        // Re-initiate connection
-        hidappEstablishLink( TRUE, addrType, remoteAddr );
-      }
-      else
-      {
-        // Go idle
-        hidappSetIdle();
+
       }
       break;
 
     default:
-      break;
-  }
-  
-  return ( TRUE );
-}
-
-/*********************************************************************
- * @fn      hidappEstablishLink
- *
- * @brief   Establish a link to a peer device.
- *
- * @param   whiteList - determines use of the white list
- * @param   addrType - address type of the peer devic
- * @param   remoteAddr - peer device address
- *
- * @return  none
- */
-static void hidappEstablishLink( uint8 whiteList, uint8 addrType, uint8 *remoteAddr )
-{
-  if ( hidappBLEState != BLE_STATE_CONNECTED )
-  {
-    hidappBLEState = BLE_STATE_CONNECTING;
-
-    // Try to connect to remote device
-    VOID GAPCentralRole_EstablishLink( DEFAULT_LINK_HIGH_DUTY_CYCLE,
-                                       whiteList, addrType, remoteAddr );
-
-    VOID osal_start_reload_timer( hidappTaskId, HIDAPP_EVT_INIT_CONNECT,
-                                  (uint32)INIT_CONNECT_TIMEOUT );
-  }
-}
-
-/*********************************************************************
- * @fn      hidappStartDiscovery
- *
- * @brief   Start initial scanning.
- *
- * @param   none
- *
- * @return  none
- */
-static void hidappStartDiscovery( void )
-{
-  // If idle and not in a connection, we should start scanning
-  if ( hidappBLEState != BLE_STATE_CONNECTED )
-  {
-    hidappBLEState = BLE_STATE_SCANNING;
-
-    numScans = MAX_NUM_SCANS;
-
-    // Begin initial scanning
-    hidappDiscoverDevices();
-  }
-}
-
-/*********************************************************************
- * @fn      hidappDiscoverDevices
- *
- * @brief   Start device discovery scan
- *
- * @param   none
- *
- * @return  none
- */
-static void hidappDiscoverDevices( void )
-{
-  if ( hidappBLEState == BLE_STATE_SCANNING )
-  {
-    HalLedSet( HAL_LED_2, HAL_LED_MODE_BLINK ); // red led
-
-    // Begin scanning
-    VOID GAPCentralRole_StartDiscovery( DEFAULT_DISCOVERY_MODE,
-                                        DEFAULT_DISCOVERY_ACTIVE_SCAN,
-                                        DEFAULT_DISCOVERY_WHITE_LIST );
-  }
-}
-
-/*********************************************************************
- * @fn      hidappSetIdle
- *
- * @brief   Set the device to idle.
- *
- * @param   none
- *
- * @return  none
- */
-static void hidappSetIdle( void )
-{
-  hidappBLEState = BLE_STATE_IDLE;
-
-  HalLedSet( HAL_LED_2, HAL_LED_MODE_ON ); // red led
-}
-
-/*********************************************************************
- * @fn      hidappPairStateCB
- *
- * @brief   Notification from the Bond Manager on pairing state.
- *
- * @param   connHandle  - the connection handle this bonding event occured for.
- * @param   state       - new bonding state
- * @param   status      - success of failure of bonding
- *
- * @return  none
- */
-static void hidappPairStateCB( uint16 connHandle, uint8 state, uint8 status )
-{
-  switch( state )
-  {
-    case GAPBOND_PAIRING_STATE_BONDED:
-      if ( status == SUCCESS )
       {
-        // Enter a GAP Bond manager Paired state
-        gapBondMgrState = PAIRED_BONDED_STATE;
 
-        //Check if this is the same address as a previous connection
-        if ( osal_memcmp( remoteHandles.lastRemoteAddr, remoteAddr, B_ADDR_LEN ) == TRUE  )
-        {
-          serviceChangeHandle = remoteHandles.svcChangeHandle;
-
-          // Check if there has been a service change or if this is a newly connected device
-          if ( ( remoteHandles.mouseCharHandle == GATT_INVALID_HANDLE )        ||
-               ( remoteHandles.keyCharHandle == GATT_INVALID_HANDLE )          ||
-               ( remoteHandles.consumerCtrlCharHandle == GATT_INVALID_HANDLE ) ||
-               ( serviceChange == CHANGE_OCCURED ) )
-          {
-            // Do we know the service change handle yet?
-            if (serviceChangeHandle == GATT_INVALID_HANDLE )
-            {
-              // Begin dicovery of GATT Service Changed characteristic
-              serviceToDiscover = GATT_SERVICE_UUID;
-            }
-            else
-            {
-              // Begin discovery of HID service
-              serviceToDiscover = HID_SERV_UUID;
-            }
-
-            // We must perform service discovery again, something might have changed.
-            // Begin Service Discovery
-            hidappDiscoverService( connHandle, serviceToDiscover );
-
-            serviceDiscComplete = FALSE;
-          }
-          else
-          {
-            // No change, restore handle info.
-            // bonding indicates that we probably already enabled all these characteristics. easy fix if not.
-            serviceDiscComplete    = TRUE;
-            mouseCharHandle        = remoteHandles.mouseCharHandle;
-            keyCharHandle          = remoteHandles.keyCharHandle;
-            consumerCtrlCharHandle = remoteHandles.consumerCtrlCharHandle;
-            mouseCCCHandle         = remoteHandles.mouseCCCHandle;
-            keyCCCHandle           = remoteHandles.keyCCCHandle;
-            consumerCtrlCCCHandle  = remoteHandles.consumerCtrlCCCHandle;
-          }
-        }
-        else if ( osal_isbufset( remoteHandles.lastRemoteAddr, 0x00, B_ADDR_LEN ) == TRUE )
-        {
-          // lastRemoteAddr is all 0's, which means the device was bonded before
-          // it was power-cycled, and that we probably already enabled all CCCDs.
-          // So, we only need to find out attribute report handles.
-          enableCCCDs = FALSE;
-
-          // Begin Service Discovery of HID Service to find out report handles
-          serviceToDiscover = HID_SERV_UUID;
-          hidappDiscoverService( connHandle, HID_SERV_UUID );
-        }
       }
       break;
 
-    case GAPBOND_PAIRING_STATE_COMPLETE:
-      if ( status == SUCCESS )
-      {
-        // Enter a GAP Bond manager Paired state
-        gapBondMgrState = PAIRED_BONDED_STATE;
+  }
 
-        // Begin Service Discovery of GATT Service
-        serviceToDiscover = GATT_SERVICE_UUID;
-        hidappDiscoverService( connHandle, GATT_SERVICE_UUID );
-      }
+  gapProfileState = newState;
+
+#if !defined( CC2540_MINIDK )
+  VOID gapProfileState;     // added to prevent compiler warning with
+                            // "CC2540 Slave" configurations
+#endif
+
+}
+
+/*********************************************************************
+ * @fn      performPeriodicTask
+ *
+ * @brief   Perform a periodic application task. This function gets
+ *          called every five seconds as a result of the SBP_PERIODIC_EVT
+ *          OSAL event. In this example, the value of the third
+ *          characteristic in the SimpleGATTProfile service is retrieved
+ *          from the profile, and then copied into the value of the
+ *          the fourth characteristic.
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void performPeriodicTask( void )
+{
+  uint8 valueToCopy;
+  uint8 stat;
+
+  // Call to retrieve the value of the third characteristic in the profile
+  stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
+
+  if( stat == SUCCESS )
+  {
+    /*
+     * Call to set that value of the fourth characteristic in the profile. Note
+     * that if notifications of the fourth characteristic have been enabled by
+     * a GATT client device, then a notification will be sent every time this
+     * function is called.
+     */
+    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
+  }
+}
+
+/*********************************************************************
+ * @fn      simpleProfileChangeCB
+ *
+ * @brief   Callback from SimpleBLEProfile indicating a value change
+ *
+ * @param   paramID - parameter ID of the value that was changed.
+ *
+ * @return  none
+ */
+static void simpleProfileChangeCB( uint8 paramID )
+{
+  uint8 newValue;
+
+  switch( paramID )
+  {
+    case SIMPLEPROFILE_CHAR1:
+      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR1, &newValue );
+
+      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
+        HalLcdWriteStringValue( "Char 1:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
+      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
+      break;
+
+    case SIMPLEPROFILE_CHAR3:
+      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &newValue );
+
+      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
+        HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
+      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       break;
 
     default:
+      // should not reach here!
       break;
   }
 }
 
-/*********************************************************************
- * @fn      hidappEnableNotification
- *
- * @brief   Enable notification for a given attribute handle.
- *
- * @param   connHandle - connection handle to send notification on
- * @param   attrHandle - attribute handle to send notification for
- *
- * @return  none
- */
-static void hidappEnableNotification( uint16 connHandle, uint16 attrHandle )
-{
-  attWriteReq_t req;
-  
-  req.pValue = GATT_bm_alloc( connHandle, ATT_WRITE_REQ, 2, NULL );
-  if ( req.pValue != NULL )
-  {
-    uint8 notificationsOn[] = {0x01, 0x00};
-
-    req.handle = attrHandle;
-
-    req.len = 2;
-    osal_memcpy(req.pValue, notificationsOn, 2);
-
-    req.sig = 0;
-    req.cmd = 0;
-
-    if ( GATT_WriteCharValue( connHandle, &req, hidappTaskId ) != SUCCESS )
-    {
-      GATT_bm_free( (gattMsg_t *)&req, ATT_WRITE_REQ );
-    }
-  }
-}
-
-/*********************************************************************
- * @fn      hidappDiscoverService
- *
- * @brief   Discover service using UUID.
- *
- * @param   connHandle - connection handle to do discovery on
- * @param   svcUuid - service UUID to discover
- *
- * @return  none
- */
-static void hidappDiscoverService( uint16 connHandle, uint16 svcUuid )
-{
-  uint8 uuid[2] = {LO_UINT16(svcUuid), HI_UINT16(svcUuid)};
-
-  VOID GATT_DiscPrimaryServiceByUUID( connHandle, uuid, ATT_BT_UUID_SIZE, hidappTaskId );
-}
-
-/*********************************************************************
- * @fn      hidappFindSvcUuid
- *
- * @brief   Find a given UUID in an advertiser's service UUID list.
- *
- * @param   uuid - service UUID to look for
- * @param   pData - received advertising data
- * @param   dataLen - advertising data length
- *
- * @return  TRUE if service UUID found
- */
-static bool hidappFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen )
-{
-  uint8 adLen;
-  uint8 adType;
-  uint8 *pEnd;
-
-  pEnd = pData + dataLen - 1;
-
-  // While end of data not reached
-  while ( pData < pEnd )
-  {
-    // Get length of next AD item
-    adLen = *pData++;
-    if ( adLen > 0 )
-    {
-      adType = *pData;
-
-      // If AD type is for 16-bit service UUID
-      if ( ( adType == GAP_ADTYPE_16BIT_MORE ) ||
-           ( adType == GAP_ADTYPE_16BIT_COMPLETE ) )
-      {
-        pData++;
-        adLen--;
-
-        // For each UUID in list
-        while ( ( adLen >= 2 ) && ( pData < pEnd ) )
-        {
-          // Check for match
-          if ( ( pData[0] == LO_UINT16(uuid) ) &&
-               ( pData[1] == HI_UINT16(uuid) ) )
-          {
-            // Match found
-            return TRUE;
-          }
-
-          // Go to next
-          pData += 2;
-          adLen -= 2;
-        }
-
-        // Handle possible erroneous extra byte in UUID list
-        if ( adLen == 1 )
-        {
-          pData++;
-        }
-      }
-      else
-      {
-        // Go to next item
-        pData += adLen;
-      }
-    }
-  }
-
-  // Match not found
-  return FALSE;
-}
-
-/*********************************************************************
- * @fn      hidappFindHIDRemote
- *
- * @brief   Search Scan Response data for a "HID AdvRemote"
- *
- * @param   pData - received advertising data
- * @param   dataLen - advertising data length
- *
- * @return  TRUE if found, false otherwise
- */
-static uint8 hidappFindHIDRemote( uint8* pData, uint8 length )
-{
-  static uint8 remoteName[] =
-  {
-    'H',
-    'I',
-    'D',
-    ' ',
-    'A',
-    'd',
-    'v',
-    'R',
-    'e',
-    'm',
-    'o',
-    't',
-    'e'
-  };
-
-  // move pointer to the start of the scan response data.
-  pData += 2;
-
-  // adjust length as well
-  length -= 2;
-
-  return osal_memcmp( remoteName, pData, length );
-}
-
-/*********************************************************************
- * @fn      hidappSaveHandles
- *
- * @brief   save handle information in case next connection is to the
- *          same bonded device.
- *
- * @param   none.
- *
- * @return  none.
- */
-static void hidappSaveHandles( void )
-{
-  // Service and Characteristic discovery variables.
-  remoteHandles.mouseCharHandle        = mouseCharHandle;
-  remoteHandles.keyCharHandle          = keyCharHandle;
-  remoteHandles.consumerCtrlCharHandle = consumerCtrlCharHandle;
-
-  // CCC's of the notifications
-  remoteHandles.mouseCCCHandle         = mouseCCCHandle;
-  remoteHandles.keyCCCHandle           = keyCCCHandle;
-  remoteHandles.consumerCtrlCCCHandle  = consumerCtrlCCCHandle;
-  remoteHandles.svcChangeHandle        = serviceChangeHandle;
-}
-
-/*********************************************************************
- * @fn      hidappEraseHandles
- *
- * @brief   erase handle information in case values as no longer important.
- *
- * @param   none.
- *
- * @return  none.
- */
-static void hidappEraseHandles( void )
-{
-  // Service and Characteristic discovery variables
-  remoteHandles.mouseCharHandle        = GATT_INVALID_HANDLE;
-  remoteHandles.keyCharHandle          = GATT_INVALID_HANDLE;
-  remoteHandles.consumerCtrlCharHandle = GATT_INVALID_HANDLE;
-
-  // CCC's of the notifications
-  remoteHandles.mouseCCCHandle         = GATT_INVALID_HANDLE;
-  remoteHandles.keyCCCHandle           = GATT_INVALID_HANDLE;
-  remoteHandles.consumerCtrlCCCHandle  = GATT_INVALID_HANDLE;
-  remoteHandles.svcChangeHandle        = GATT_INVALID_HANDLE;
-
-  // Erase the last connected device's address too
-  osal_memset( remoteHandles.lastRemoteAddr, 0x00, B_ADDR_LEN );
-}
-
-/*********************************************************************
- * @fn      hidappBondCount
- *
- * @brief   Gets the total number of bonded devices.
- *
- * @param   none.
- *
- * @return  number of bonded devices.
- */
-static uint8 hidappBondCount( void )
-{
-  uint8 bondCnt = 0;
-
-  VOID GAPBondMgr_GetParameter( GAPBOND_BOND_COUNT, &bondCnt );
-
-  return ( bondCnt );
-}
 
 /**************************************************************************************************
 **************************************************************************************************/

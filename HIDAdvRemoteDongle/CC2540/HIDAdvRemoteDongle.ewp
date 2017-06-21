@@ -500,6 +500,9 @@
           <state>$PROJ_DIR$\..\common\cc2540</state>
           <state>$PROJ_DIR$\..\Profiles\Roles\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Roles</state>
+          <state>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\SimpleProfile</state>
+          <state>$PROJ_DIR$\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
         </option>
         <option>
@@ -1456,10 +1459,22 @@
   <group>
     <name>PROFILES</name>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\central.c</name>
+      <name>$PROJ_DIR$\..\Profiles\DevInfo\devinfoservice.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\central.h</name>
+      <name>$PROJ_DIR$\..\Profiles\DevInfo\devinfoservice.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x\simpleGATTprofile.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Profiles\Roles\gap.c</name>
