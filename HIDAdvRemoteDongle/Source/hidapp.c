@@ -745,16 +745,6 @@ static void performPeriodicTask( void )
   }
   
   HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
-  
-  
-  if (hidReportBufLength==0){
-    hidReportBufferAppend(USB_HID_KBD_EP,0,0,0x04,0,0,0,0,0);
-    hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
-    reportRetries = 1;
-    osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
-    osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
-  }
-  
 }
 
 /*********************************************************************
@@ -787,6 +777,14 @@ static void simpleProfileChangeCB( uint8 paramID )
       #if (defined HAL_LCD) && (HAL_LCD == TRUE)
         HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
       #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+        
+      if (hidReportBufLength==0){
+        hidReportBufferAppend(USB_HID_KBD_EP,0,0,newValue,0,0,0,0,0);
+        hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
+        reportRetries = 0;
+        osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+        osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+      }
 
       break;
 
