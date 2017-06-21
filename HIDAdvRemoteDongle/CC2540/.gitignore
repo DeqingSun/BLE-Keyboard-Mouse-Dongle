@@ -1,0 +1,7 @@
+CC2540USB AdvRemoteDongle
+
+settings
+
+*.dep
+*.ewt
+*.tmp
