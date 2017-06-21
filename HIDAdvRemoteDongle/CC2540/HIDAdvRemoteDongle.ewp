@@ -476,31 +476,31 @@
         </option>
         <option>
           <name>Compiler Extra Options Edit</name>
-          <state>-f $PROJ_DIR$\..\..\config\buildComponents.cfg</state>
+          <state>-f $PROJ_DIR$\..\config\buildComponents.cfg</state>
           <state>-f $PROJ_DIR$\buildConfig.cfg</state>
         </option>
         <option>
           <name>CCIncludePath2</name>
-          <state>$PROJ_DIR$\..\..\common</state>
-          <state>$PROJ_DIR$\..\..\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\osal\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\services\saddr</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\controller\CC254x\phy</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\controller\CC254x\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\hci</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\host</state>
-          <state>$PROJ_DIR$\..\..\..\..\Components\ble\ROM</state>
-          <state>$PROJ_DIR$\..\..\common\cc2540</state>
-          <state>$PROJ_DIR$\..\..\Profiles\Roles\CC254x</state>
-          <state>$PROJ_DIR$\..\..\Profiles\Roles</state>
-          <state>$PROJ_DIR$\..\..\Profiles\HIDDev\CC254x</state>
+          <state>$PROJ_DIR$\..\common</state>
+          <state>$PROJ_DIR$\..\include</state>
+          <state>$PROJ_DIR$\..\Components\hal\include</state>
+          <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB</state>
+          <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library</state>
+          <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid</state>
+          <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid</state>
+          <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid</state>
+          <state>$PROJ_DIR$\..\Components\osal\include</state>
+          <state>$PROJ_DIR$\..\Components\services\saddr</state>
+          <state>$PROJ_DIR$\..\Components\ble\include</state>
+          <state>$PROJ_DIR$\..\Components\ble\controller\CC254x\phy</state>
+          <state>$PROJ_DIR$\..\Components\ble\controller\CC254x\include</state>
+          <state>$PROJ_DIR$\..\Components\ble\hci</state>
+          <state>$PROJ_DIR$\..\Components\ble\host</state>
+          <state>$PROJ_DIR$\..\Components\ble\ROM</state>
+          <state>$PROJ_DIR$\..\common\cc2540</state>
+          <state>$PROJ_DIR$\..\Profiles\Roles\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\Roles</state>
+          <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -834,7 +834,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$PROJ_DIR$\..\..\common\cc2540\ti_51ew_cc2540b.xcl</state>
+          <state>$PROJ_DIR$\..\common\cc2540\ti_51ew_cc2540b.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1161,52 +1161,52 @@
     <group>
       <name>Common</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\common\hal_drivers.c</name>
+        <name>$PROJ_DIR$\..\Components\hal\common\hal_drivers.c</name>
       </file>
     </group>
     <group>
       <name>Include</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_adc.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_adc.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_assert.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_assert.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_board.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_board.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_ccm.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_ccm.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_defs.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_defs.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_drivers.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_drivers.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_flash.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_flash.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_key.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_key.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_lcd.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_lcd.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_led.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_led.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_rpc.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_rpc.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_sleep.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_sleep.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_timer.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_timer.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_uart.h</name>
+        <name>$PROJ_DIR$\..\Components\hal\include\hal_uart.h</name>
       </file>
     </group>
     <group>
@@ -1216,58 +1216,58 @@
         <group>
           <name>Config</name>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_board_cfg.h</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_board_cfg.h</name>
           </file>
         </group>
         <group>
           <name>Drivers</name>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_adc.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_adc.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_aes.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_aes.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_dma.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_dma.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_flash.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_flash.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_key.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_key.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_lcd.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_lcd.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_led.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_led.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_sleep.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_sleep.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_startup.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_startup.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_timer.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_timer.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_uart.c</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_uart.c</name>
           </file>
         </group>
         <group>
           <name>Includes</name>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_aes.h</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_aes.h</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_dma.h</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_dma.h</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_mcu.h</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_mcu.h</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\hal_types.h</name>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\hal_types.h</name>
           </file>
         </group>
         <group>
@@ -1275,37 +1275,37 @@
           <group>
             <name>class_hid</name>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_class_requests.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_class_requests.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_class_requests.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_class_requests.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_config.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_config.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_config.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_config.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_headers.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_firmware_library_headers.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_descriptor.s51</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_descriptor.s51</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_hooks.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_hooks.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_reports.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_reports.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_reports.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\class_hid\usb_hid_reports.h</name>
             </file>
           </group>
           <group>
@@ -1313,50 +1313,50 @@
             <group>
               <name>cc2540_hid</name>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_board_cfg.h</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_board_cfg.h</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_interrupt.c</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_interrupt.c</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_suspend.c</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\cc2540_hid\usb_suspend.c</name>
               </file>
             </group>
             <group>
               <name>usb_hid</name>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_descriptor_parser.c</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_descriptor_parser.c</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_descriptor_parser.h</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_descriptor_parser.h</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_framework.c</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_framework.c</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_framework_structs.h</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_framework_structs.h</name>
               </file>
               <file>
-                <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_interrupt.h</name>
+                <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_hid\usb_interrupt.h</name>
               </file>
             </group>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_descriptor.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_descriptor.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_framework.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_framework.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_reg.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_reg.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_standard_requests.c</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_standard_requests.c</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_standard_requests.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_standard_requests.h</name>
             </file>
             <file>
-              <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540USB\usb\library\usb_suspend.h</name>
+              <name>$PROJ_DIR$\..\Components\hal\target\CC2540USB\usb\library\usb_suspend.h</name>
             </file>
           </group>
         </group>
@@ -1366,148 +1366,148 @@
   <group>
     <name>INCLUDE</name>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\att.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\att.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\gap.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\gap.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\gatt.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\gatt.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\gatt_uuid.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\gatt_uuid.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\hci.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\hci.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\l2cap.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\l2cap.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\host\linkdb.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\host\linkdb.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\controller\CC254x\include\ll.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\controller\CC254x\include\ll.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\controller\CC254x\include\ll_sleep.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\controller\CC254x\include\ll_sleep.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\controller\CC254x\include\phy.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\controller\CC254x\include\phy.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\sm.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\sm.h</name>
     </file>
   </group>
   <group>
     <name>LIB</name>
     <file>
-      <name>$PROJ_DIR$\..\..\Libraries\CC2540DB\bin\CC2540_BLE.lib</name>
+      <name>$PROJ_DIR$\..\Libraries\CC2540DB\bin\CC2540_BLE.lib</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Libraries\Common\bin\CC254x_BLE_HCI_TL_Full.lib</name>
+      <name>$PROJ_DIR$\..\Libraries\Common\bin\CC254x_BLE_HCI_TL_Full.lib</name>
       <excluded>
         <configuration>CC2540USB HID AdvRemoteDongle</configuration>
       </excluded>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Libraries\Common\bin\CC254x_BLE_HCI_TL_None.lib</name>
+      <name>$PROJ_DIR$\..\Libraries\Common\bin\CC254x_BLE_HCI_TL_None.lib</name>
     </file>
   </group>
   <group>
     <name>NPI</name>
     <file>
-      <name>$PROJ_DIR$\..\..\common\npi\npi_np\npi.c</name>
+      <name>$PROJ_DIR$\..\common\npi\npi_np\npi.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\common\npi\npi_np\npi.h</name>
+      <name>$PROJ_DIR$\..\common\npi\npi_np\npi.h</name>
     </file>
   </group>
   <group>
     <name>OSAL</name>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\include\bcomdef.h</name>
+      <name>$PROJ_DIR$\..\Components\ble\include\bcomdef.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_bufmgr.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\osal_bufmgr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_cbtimer.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\osal_cbtimer.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_ClockBLE.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_ClockBLE.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Memory.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_PwrMgr.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_PwrMgr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\mcu\cc2540\osal_snv.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\mcu\cc2540\osal_snv.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Timers.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Timers.c</name>
     </file>
   </group>
   <group>
     <name>PROFILES</name>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\Roles\CC254x\central.c</name>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\central.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\Roles\CC254x\central.h</name>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\central.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\Roles\gap.c</name>
+      <name>$PROJ_DIR$\..\Profiles\Roles\gap.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\Roles\gapbondmgr.c</name>
+      <name>$PROJ_DIR$\..\Profiles\Roles\gapbondmgr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\Roles\gapbondmgr.h</name>
+      <name>$PROJ_DIR$\..\Profiles\Roles\gapbondmgr.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Include\gapgattserver.h</name>
+      <name>$PROJ_DIR$\..\Include\gapgattserver.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\Components\ble\host\gatt_uuid.c</name>
+      <name>$PROJ_DIR$\..\Components\ble\host\gatt_uuid.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Include\gattservapp.h</name>
+      <name>$PROJ_DIR$\..\Include\gattservapp.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\Profiles\GATT\gattservapp_util.c</name>
+      <name>$PROJ_DIR$\..\Profiles\GATT\gattservapp_util.c</name>
     </file>
   </group>
   <group>
     <name>TOOLS</name>
     <file>
-      <name>$PROJ_DIR$\..\..\config\buildComponents.cfg</name>
+      <name>$PROJ_DIR$\..\config\buildComponents.cfg</name>
     </file>
     <file>
       <name>$PROJ_DIR$\buildConfig.cfg</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\common\cc2540\lnk51ew_cc2530b_banked_rom_data.xcl</name>
+      <name>$PROJ_DIR$\..\common\cc2540\lnk51ew_cc2530b_banked_rom_data.xcl</name>
       <excluded>
         <configuration>CC2540USB HID AdvRemoteDongle</configuration>
       </excluded>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\common\cc2540\lnk_banked_rom_data.xcl</name>
+      <name>$PROJ_DIR$\..\common\cc2540\lnk_banked_rom_data.xcl</name>
       <excluded>
         <configuration>CC2540USB HID AdvRemoteDongle</configuration>
       </excluded>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\common\cc2540\OnBoard.c</name>
+      <name>$PROJ_DIR$\..\common\cc2540\OnBoard.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\common\cc2540\OnBoard.h</name>
+      <name>$PROJ_DIR$\..\common\cc2540\OnBoard.h</name>
     </file>
   </group>
 </project>
