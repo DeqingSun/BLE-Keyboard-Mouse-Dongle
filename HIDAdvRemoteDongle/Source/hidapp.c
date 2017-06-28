@@ -101,6 +101,7 @@
 #include "hidapp.h"
 
 #include "keyboardMap.h"
+#include <string.h>
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Constants
@@ -163,7 +164,7 @@
 
 #define HIDAPP_INPUT_RETRY_TIMEOUT            5 // ms
 
-#define HID_REPORT_BUFFER_LEN                 18
+#define HID_REPORT_BUFFER_LEN                 9
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
@@ -778,6 +779,31 @@ static void simpleProfileChangeCB( uint8 paramID )
           }
         }
       }
+      break;
+      
+    case KEYBOARD_TYPE_CHAR:
+    {
+      uint8 typeData[9];
+      SimpleProfile_GetParameter( KEYBOARD_TYPE_CHAR, &typeData );
+      int stringLen = strlen((const char *)typeData);
+      if (stringLen>8) stringLen=8;
+      for (uint8 i=0;i<stringLen;i++){
+        newValue=typeData[i];
+        if (newValue<128){
+          uint8 hidCode = HIDTable[newValue];
+          uint8 modifierCode = modifierTable[newValue];
+          if ((hidCode!=0) || (modifierCode!=0)){
+            if (hidReportBufLength<(HID_REPORT_BUFFER_LEN-1)){
+              hidReportBufferAppend(USB_HID_KBD_EP,modifierCode,0,hidCode,0,0,0,0,0);
+            }
+          }
+        }
+      }
+      if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)) hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
+      reportRetries = 0;
+      osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+      osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+    }
       break;
 
     case KEYBOARD_REPORT_CHAR:

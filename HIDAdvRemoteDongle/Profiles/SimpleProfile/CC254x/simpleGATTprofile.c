@@ -144,17 +144,17 @@ static uint8 keyboardPressCharProps = GATT_PROP_WRITE;
 static uint8 keyboardPressChar = 0;
 
 // Keyboard Press Characteristic User Description
-static uint8 keyboardPressCharUserDesp[24] = "Keyboard: type an ascii";
+static uint8 keyboardPressCharUserDesp[13] = "KBD type chr";
 
 
-// Simple Profile Characteristic 2 Properties
-static uint8 simpleProfileChar2Props = GATT_PROP_READ;
+// Keyboard Type Characteristic Properties
+static uint8 keyboardTypeCharProps = GATT_PROP_WRITE;
 
-// Characteristic 2 Value
-static uint8 simpleProfileChar2 = 0;
+// Keyboard Type Characteristic Value
+static uint8 keyboardTypeChar[9] = {0};
 
-// Simple Profile Characteristic 2 User Description
-static uint8 simpleProfileChar2UserDesp[17] = "Characteristic 2";
+// Keyboard Type Characteristic User Description
+static uint8 keyboardTypeCharUserDesp[16] = "KBD type str 16";
 
 
 // Simple Profile Characteristic 3 Properties
@@ -198,7 +198,7 @@ static uint8 simpleProfileChar5UserDesp[17] = "Characteristic 5";
 
 static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] = 
 {
-  // Simple Profile Service
+  // Keyboard Dongle Profile Service
   { 
     { ATT_BT_UUID_SIZE, primaryServiceUUID }, /* type */
     GATT_PERMIT_READ,                         /* permissions */
@@ -206,7 +206,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     (uint8 *)&keyboardDongleService           /* pValue */
   },
 
-    // Characteristic 1 Declaration
+    // keyboard Press Characteristic Declaration
     { 
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
@@ -214,7 +214,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
       &keyboardPressCharProps 
     },
 
-      // Characteristic Value 1
+      // keyboard Press Characteristic Value
       { 
         { ATT_UUID_SIZE, keyboardPressCharUUID },
         GATT_PERMIT_WRITE, 
@@ -222,7 +222,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         &keyboardPressChar 
       },
 
-      // Characteristic 1 User Description
+      // keyboard Press Characteristic User Description
       { 
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
@@ -230,28 +230,28 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         keyboardPressCharUserDesp 
       },      
 
-    // Characteristic 2 Declaration
+    // keyboard Type Characteristic Declaration
     { 
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
       0,
-      &simpleProfileChar2Props 
+      &keyboardTypeCharProps 
     },
 
-      // Characteristic Value 2
+      // keyboard Type Characteristic Value
       { 
         { ATT_UUID_SIZE, keyboardTypeCharUUID },
-        GATT_PERMIT_READ, 
+        GATT_PERMIT_WRITE, 
         0, 
-        &simpleProfileChar2 
+        keyboardTypeChar 
       },
 
-      // Characteristic 2 User Description
+      // keyboard Type Characteristic User Description
       { 
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
         0, 
-        simpleProfileChar2UserDesp 
+        keyboardTypeCharUserDesp 
       },           
       
     // Characteristic 3 Declaration
@@ -478,9 +478,9 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       break;
 
     case KEYBOARD_TYPE_CHAR:
-      if ( len == sizeof ( uint8 ) ) 
+      if ( len <= (sizeof(keyboardTypeChar)) ) 
       {
-        simpleProfileChar2 = *((uint8*)value);
+        (void)memcpy(keyboardTypeChar, value, len);
       }
       else
       {
@@ -557,7 +557,11 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
       break;
 
     case KEYBOARD_TYPE_CHAR:
-      *((uint8*)value) = simpleProfileChar2;
+      {
+        int stringLen = strlen((const char *)keyboardTypeChar);
+        if (stringLen>(sizeof(keyboardTypeChar))) stringLen=(sizeof(keyboardTypeChar));
+        (void)memcpy(value, keyboardTypeChar, stringLen);
+      }
       break;      
 
     case KEYBOARD_REPORT_CHAR:
@@ -698,40 +702,43 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
   
   switch ( uuid ){
     case KEYBOARD_PRESS_CHAR_UUID:
-    case KEYBOARD_REPORT_CHAR_UUID:
-
       //Validate the value
       // Make sure it's not a blob oper
-      if ( offset == 0 )
-      {
-        if ( len != 1 )
-        {
+      if ( offset == 0 ){
+        if ( len != 1 ){
           status = ATT_ERR_INVALID_VALUE_SIZE;
         }
-      }
-      else
-      {
+      }else{
         status = ATT_ERR_ATTR_NOT_LONG;
       }
-      
       //Write the value
       if ( status == SUCCESS )
       {
-        uint8 *pCurValue = (uint8 *)pAttr->pValue;        
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;
         *pCurValue = pValue[0];
-
-        if( pAttr->pValue == &keyboardPressChar )
-        {
-          notifyApp = KEYBOARD_PRESS_CHAR;        
-        }
-        else
-        {
-          notifyApp = KEYBOARD_REPORT_CHAR;           
-        }
+        notifyApp = KEYBOARD_PRESS_CHAR;        
       }
-           
       break;
-
+    case KEYBOARD_TYPE_CHAR_UUID:
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 ){
+        if ( len >(sizeof(keyboardTypeChar)-1) ){
+          status = ATT_ERR_INVALID_VALUE_SIZE;
+        }
+      }else{
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
+      //Write the value
+      if ( status == SUCCESS )
+      {
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;
+        (void)memcpy(pCurValue, pValue, len); 
+        pCurValue[len]='\0';
+        notifyApp = KEYBOARD_TYPE_CHAR;        
+      }
+      break;
+      
     case GATT_CLIENT_CHAR_CFG_UUID:
       status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                offset, GATT_CLIENT_CFG_NOTIFY );
