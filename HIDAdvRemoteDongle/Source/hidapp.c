@@ -805,22 +805,18 @@ static void simpleProfileChangeCB( uint8 paramID )
       osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
     }
       break;
-
+      
     case KEYBOARD_REPORT_CHAR:
-      SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &newValue );
-
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-        
-      if (hidReportBufLength==0){
-        hidReportBufferAppend(USB_HID_KBD_EP,0,0,newValue,0,0,0,0,0);
-        hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
-        reportRetries = 0;
-        osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
-        osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+      {
+        uint8 reportData[8];
+        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &reportData );
+        if (hidReportBufLength==0){
+          hidReportBufferAppend(USB_HID_KBD_EP,reportData[0],reportData[1],reportData[2],reportData[3],reportData[4],reportData[5],reportData[6],reportData[7]);
+          reportRetries = 0;
+          osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+          osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+        }
       }
-
       break;
 
     default:

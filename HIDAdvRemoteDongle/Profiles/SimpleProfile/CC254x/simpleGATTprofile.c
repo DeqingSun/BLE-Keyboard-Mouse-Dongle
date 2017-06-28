@@ -157,14 +157,14 @@ static uint8 keyboardTypeChar[9] = {0};
 static uint8 keyboardTypeCharUserDesp[16] = "KBD type str 16";
 
 
-// Simple Profile Characteristic 3 Properties
-static uint8 simpleProfileChar3Props = GATT_PROP_WRITE;
+// Keyboard Report Characteristic Properties
+static uint8 keyboardReportCharProps = GATT_PROP_WRITE;
 
-// Characteristic 3 Value
-static uint8 simpleProfileChar3 = 0;
+// Keyboard Report Characteristic Value
+static uint8 keyboardReportChar[8] = {0};
 
-// Simple Profile Characteristic 3 User Description
-static uint8 simpleProfileChar3UserDesp[17] = "Characteristic 3";
+// Keyboard Report Characteristic User Description
+static uint8 keyboardReportCharUserDesp[11] = "KBD report";
 
 
 // Simple Profile Characteristic 4 Properties
@@ -259,7 +259,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
       0,
-      &simpleProfileChar3Props 
+      &keyboardReportCharProps 
     },
 
       // Characteristic Value 3
@@ -267,7 +267,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         { ATT_UUID_SIZE, keyboardReportCharUUID },
         GATT_PERMIT_WRITE, 
         0, 
-        &simpleProfileChar3 
+        keyboardReportChar 
       },
 
       // Characteristic 3 User Description
@@ -275,7 +275,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
         0, 
-        simpleProfileChar3UserDesp 
+        keyboardReportCharUserDesp 
       },
 
     // Characteristic 4 Declaration
@@ -489,9 +489,9 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       break;
 
     case KEYBOARD_REPORT_CHAR:
-      if ( len == sizeof ( uint8 ) ) 
+      if ( len <= 8 ) 
       {
-        simpleProfileChar3 = *((uint8*)value);
+        (void)memcpy(keyboardReportChar, value, len);
       }
       else
       {
@@ -565,7 +565,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
       break;      
 
     case KEYBOARD_REPORT_CHAR:
-      *((uint8*)value) = simpleProfileChar3;
+      (void)memcpy(value, keyboardReportChar, 8);
       break;  
 
     case KEYBOARD_LED_CHAR:
@@ -738,7 +738,25 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
         notifyApp = KEYBOARD_TYPE_CHAR;        
       }
       break;
-      
+    case KEYBOARD_REPORT_CHAR_UUID:
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 ){
+        if ( len >8 ){
+          status = ATT_ERR_INVALID_VALUE_SIZE;
+        }
+      }else{
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
+      //Write the value
+      if ( status == SUCCESS )
+      { 
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;
+        (void)memset(pCurValue, 0, 8); 
+        (void)memcpy(pCurValue, pValue, len); 
+        notifyApp = KEYBOARD_REPORT_CHAR;        
+      }
+      break;      
     case GATT_CLIENT_CHAR_CFG_UUID:
       status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                offset, GATT_CLIENT_CFG_NOTIFY );
