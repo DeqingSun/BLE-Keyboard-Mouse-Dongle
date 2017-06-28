@@ -137,14 +137,14 @@ static keyboardDongleProfileCBs_t *simpleProfile_AppCBs = NULL;
 static CONST gattAttrType_t keyboardDongleService = { ATT_UUID_SIZE, keyboardDongleServUUID };
 
 
-// Simple Profile Characteristic 1 Properties
-static uint8 simpleProfileChar1Props = GATT_PROP_WRITE;
+// Keyboard Press Characteristic Properties
+static uint8 keyboardPressCharProps = GATT_PROP_WRITE;
 
-// Characteristic 1 Value
-static uint8 simpleProfileChar1 = 0;
+// Keyboard Press Characteristic Value
+static uint8 keyboardPressChar = 0;
 
-// Simple Profile Characteristic 1 User Description
-static uint8 simpleProfileChar1UserDesp[17] = "Characteristic 1";
+// Keyboard Press Characteristic User Description
+static uint8 keyboardPressCharUserDesp[24] = "Keyboard: type an ascii";
 
 
 // Simple Profile Characteristic 2 Properties
@@ -211,7 +211,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
       0,
-      &simpleProfileChar1Props 
+      &keyboardPressCharProps 
     },
 
       // Characteristic Value 1
@@ -219,7 +219,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         { ATT_UUID_SIZE, keyboardPressCharUUID },
         GATT_PERMIT_WRITE, 
         0, 
-        &simpleProfileChar1 
+        &keyboardPressChar 
       },
 
       // Characteristic 1 User Description
@@ -227,7 +227,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
         0, 
-        simpleProfileChar1UserDesp 
+        keyboardPressCharUserDesp 
       },      
 
     // Characteristic 2 Declaration
@@ -469,7 +469,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
     case KEYBOARD_PRESS_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
-        simpleProfileChar1 = *((uint8*)value);
+        keyboardPressChar = *((uint8*)value);
       }
       else
       {
@@ -553,7 +553,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
   switch ( param )
   {
     case KEYBOARD_PRESS_CHAR:
-      *((uint8*)value) = simpleProfileChar1;
+      *((uint8*)value) = keyboardPressChar;
       break;
 
     case KEYBOARD_TYPE_CHAR:
@@ -720,7 +720,7 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
         uint8 *pCurValue = (uint8 *)pAttr->pValue;        
         *pCurValue = pValue[0];
 
-        if( pAttr->pValue == &simpleProfileChar1 )
+        if( pAttr->pValue == &keyboardPressChar )
         {
           notifyApp = KEYBOARD_PRESS_CHAR;        
         }
