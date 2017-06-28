@@ -138,7 +138,7 @@ static CONST gattAttrType_t keyboardDongleService = { ATT_UUID_SIZE, keyboardDon
 
 
 // Simple Profile Characteristic 1 Properties
-static uint8 simpleProfileChar1Props = GATT_PROP_READ | GATT_PROP_WRITE;
+static uint8 simpleProfileChar1Props = GATT_PROP_WRITE;
 
 // Characteristic 1 Value
 static uint8 simpleProfileChar1 = 0;
@@ -217,7 +217,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
       // Characteristic Value 1
       { 
         { ATT_UUID_SIZE, keyboardPressCharUUID },
-        GATT_PERMIT_READ | GATT_PERMIT_WRITE, 
+        GATT_PERMIT_WRITE, 
         0, 
         &simpleProfileChar1 
       },
@@ -359,6 +359,27 @@ CONST gattServiceCBs_t simpleProfileCBs =
 /*********************************************************************
  * PUBLIC FUNCTIONS
  */
+
+bStatus_t utilExtractUuid16(gattAttribute_t *pAttr, uint16 *pUuid)
+{
+  bStatus_t status = SUCCESS;
+
+  if (pAttr->type.len == ATT_BT_UUID_SIZE )
+  {
+    // 16-bit UUID direct
+    *pUuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
+  }
+  else if (pAttr->type.len == ATT_UUID_SIZE)
+  {
+    // 16-bit UUID extracted bytes 12 and 13 for this service
+    *pUuid = BUILD_UINT16( pAttr->type.uuid[12], pAttr->type.uuid[13]);
+  } else {
+    *pUuid = 0xFFFF;
+    status = FAILURE;
+  }
+
+  return status;
+}
 
 /*********************************************************************
  * @fn      SimpleProfile_AddService
@@ -607,8 +628,8 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
       //   included here
       // characteristic 4 does not have read permissions, but because it
       //   can be sent as a notification, it is included here
-      case KEYBOARD_PRESS_CHAR_UUID:
-      case KEYBOARD_TYPE_CHAR_UUID:
+
+
       case KEYBOARD_LED_CHAR_UUID:
         *pLen = 1;
         pValue[0] = *pAttr->pValue;
@@ -654,6 +675,7 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
                                             uint8 *pValue, uint8 len, uint16 offset,
                                             uint8 method )
 {
+  uint16 uuid;
   bStatus_t status = SUCCESS;
   uint8 notifyApp = 0xFF;
   
@@ -664,63 +686,63 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
     return ( ATT_ERR_INSUFFICIENT_AUTHOR );
   }
   
-  if ( pAttr->type.len == ATT_BT_UUID_SIZE )
-  {
-    // 16-bit UUID
-    uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
-    switch ( uuid )
-    {
-      case KEYBOARD_PRESS_CHAR_UUID:
-      case KEYBOARD_REPORT_CHAR_UUID:
+  // Make sure it's not a blob operation (no attributes in the profile are long)
+  if ( offset > 0 ){
+    return ( ATT_ERR_ATTR_NOT_LONG );
+  }
+  
+  if (utilExtractUuid16(pAttr,&uuid) == FAILURE) {                                      
+    // Invalid handle
+    return ATT_ERR_INVALID_HANDLE;                                                      
+  }
+  
+  switch ( uuid ){
+    case KEYBOARD_PRESS_CHAR_UUID:
+    case KEYBOARD_REPORT_CHAR_UUID:
 
-        //Validate the value
-        // Make sure it's not a blob oper
-        if ( offset == 0 )
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 )
+      {
+        if ( len != 1 )
         {
-          if ( len != 1 )
-          {
-            status = ATT_ERR_INVALID_VALUE_SIZE;
-          }
+          status = ATT_ERR_INVALID_VALUE_SIZE;
+        }
+      }
+      else
+      {
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
+      
+      //Write the value
+      if ( status == SUCCESS )
+      {
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;        
+        *pCurValue = pValue[0];
+
+        if( pAttr->pValue == &simpleProfileChar1 )
+        {
+          notifyApp = KEYBOARD_PRESS_CHAR;        
         }
         else
         {
-          status = ATT_ERR_ATTR_NOT_LONG;
+          notifyApp = KEYBOARD_REPORT_CHAR;           
         }
-        
-        //Write the value
-        if ( status == SUCCESS )
-        {
-          uint8 *pCurValue = (uint8 *)pAttr->pValue;        
-          *pCurValue = pValue[0];
+      }
+           
+      break;
 
-          if( pAttr->pValue == &simpleProfileChar1 )
-          {
-            notifyApp = KEYBOARD_PRESS_CHAR;        
-          }
-          else
-          {
-            notifyApp = KEYBOARD_REPORT_CHAR;           
-          }
-        }
-             
-        break;
+    case GATT_CLIENT_CHAR_CFG_UUID:
+      status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
+                                               offset, GATT_CLIENT_CFG_NOTIFY );
+      break;
+      
+    default:
+      // Should never get here! (characteristics 2 and 4 do not have write permissions)
+      status = ATT_ERR_ATTR_NOT_FOUND;
+      break;
+  }
 
-      case GATT_CLIENT_CHAR_CFG_UUID:
-        status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
-                                                 offset, GATT_CLIENT_CFG_NOTIFY );
-        break;
-        
-      default:
-        // Should never get here! (characteristics 2 and 4 do not have write permissions)
-        status = ATT_ERR_ATTR_NOT_FOUND;
-        break;
-    }
-  }
-  else
-  {
-    // 128-bit UUID
-    status = ATT_ERR_INVALID_HANDLE;
-  }
 
   // If a charactersitic value changed then callback function to notify application of change
   if ( (notifyApp != 0xFF ) && simpleProfile_AppCBs && simpleProfile_AppCBs->pfnKeyboardDongleProfileChange )

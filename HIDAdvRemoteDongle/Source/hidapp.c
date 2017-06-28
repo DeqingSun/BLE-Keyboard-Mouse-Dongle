@@ -100,6 +100,8 @@
 /* Application */
 #include "hidapp.h"
 
+#include "keyboardMap.h"
+
 /* ------------------------------------------------------------------------------------------------
  *                                           Constants
  * ------------------------------------------------------------------------------------------------
@@ -161,7 +163,7 @@
 
 #define HIDAPP_INPUT_RETRY_TIMEOUT            5 // ms
 
-#define HID_REPORT_BUFFER_LEN                 8
+#define HID_REPORT_BUFFER_LEN                 18
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
@@ -760,15 +762,22 @@ static void simpleProfileChangeCB( uint8 paramID )
 {
   uint8 newValue;
 
-  switch( paramID )
-  {
+  switch( paramID ){
     case KEYBOARD_PRESS_CHAR:
       SimpleProfile_GetParameter( KEYBOARD_PRESS_CHAR, &newValue );
-
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        HalLcdWriteStringValue( "Char 1:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-
+      if (newValue<128){
+        uint8 hidCode = HIDTable[newValue];
+        uint8 modifierCode = modifierTable[newValue];
+        if ((hidCode!=0) || (modifierCode!=0)){
+          if (hidReportBufLength==0){
+            hidReportBufferAppend(USB_HID_KBD_EP,modifierCode,0,hidCode,0,0,0,0,0);
+            hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
+            reportRetries = 0;
+            osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+            osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+          }
+        }
+      }
       break;
 
     case KEYBOARD_REPORT_CHAR:

@@ -482,6 +482,7 @@
         <option>
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$\..\common</state>
+		  <state>$PROJ_DIR$\..\Source</state>
           <state>$PROJ_DIR$\..\include</state>
           <state>$PROJ_DIR$\..\Components\hal\include</state>
           <state>$PROJ_DIR$\..\Components\hal\target\CC2540USB</state>
@@ -1156,6 +1157,9 @@
       <name>$PROJ_DIR$\..\Source\Hidapp_Main.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\Source\keyboardMap.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\Source\OSAL_Hidapp.c</name>
     </file>
   </group>
@@ -1465,18 +1469,6 @@
       <name>$PROJ_DIR$\..\Profiles\DevInfo\devinfoservice.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x\simpleGATTprofile.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\Profiles\Roles\gap.c</name>
     </file>
     <file>
@@ -1496,6 +1488,18 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\Profiles\GATT\gattservapp_util.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x\simpleGATTprofile.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
     </file>
   </group>
   <group>
