@@ -72,6 +72,8 @@ void usbHidInit(void)
 
 /// @}
 
+extern void usbHidAppPoll(void);
+
 void usbHidProcessEvents(void)
 {
     // Handle USB resume
@@ -103,6 +105,9 @@ void usbHidProcessEvents(void)
         USBIRQ_CLEAR_EVENTS(USBIRQ_EVENT_SETUP);
         usbfwSetupHandler();
     }
+    
+    // Call application polling callback
+    usbHidAppPoll();
 }
 
 

@@ -167,20 +167,20 @@ static uint8 keyboardReportChar[8] = {0};
 static uint8 keyboardReportCharUserDesp[11] = "KBD report";
 
 
-// Simple Profile Characteristic 4 Properties
-static uint8 simpleProfileChar4Props = GATT_PROP_NOTIFY;
+// Keyboard LED Characteristic Properties
+static uint8 keyboardLedCharProps = GATT_PROP_READ|GATT_PROP_NOTIFY;
 
-// Characteristic 4 Value
-static uint8 simpleProfileChar4 = 0;
+// Keyboard LED Characteristic Value
+static uint8 keyboardLedChar = 0;
 
-// Simple Profile Characteristic 4 Configuration Each client has its own
+// Keyboard LED Characteristic Configuration Each client has its own
 // instantiation of the Client Characteristic Configuration. Reads of the
 // Client Characteristic Configuration only shows the configuration for
 // that client and writes only affect the configuration of that client.
-static gattCharCfg_t *simpleProfileChar4Config;
+static gattCharCfg_t *keyboardLedCharConfig;
                                         
-// Simple Profile Characteristic 4 User Description
-static uint8 simpleProfileChar4UserDesp[17] = "Characteristic 4";
+// Keyboard LED Characteristic User Description
+static uint8 keyboardLedCharUserDesp[8] = "KBD LED";
 
 
 // Simple Profile Characteristic 5 Properties
@@ -254,7 +254,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         keyboardTypeCharUserDesp 
       },           
       
-    // Characteristic 3 Declaration
+    // keyboard Report Declaration
     { 
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
@@ -262,7 +262,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
       &keyboardReportCharProps 
     },
 
-      // Characteristic Value 3
+      // keyboard Report Characteristic Value
       { 
         { ATT_UUID_SIZE, keyboardReportCharUUID },
         GATT_PERMIT_WRITE, 
@@ -270,7 +270,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         keyboardReportChar 
       },
 
-      // Characteristic 3 User Description
+      // keyboard Report Characteristic User Description
       { 
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
@@ -278,36 +278,36 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         keyboardReportCharUserDesp 
       },
 
-    // Characteristic 4 Declaration
+    // keyboard LED Characteristic Declaration
     { 
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
       0,
-      &simpleProfileChar4Props 
+      &keyboardLedCharProps 
     },
 
-      // Characteristic Value 4
+      // keyboard LED Characteristic Value
       { 
         { ATT_UUID_SIZE, keyboardLEDCharUUID },
+        GATT_PERMIT_READ, 
         0, 
-        0, 
-        &simpleProfileChar4 
+        &keyboardLedChar 
       },
 
-      // Characteristic 4 configuration
+      // keyboard LED Characteristic configuration
       { 
         { ATT_BT_UUID_SIZE, clientCharCfgUUID },
         GATT_PERMIT_READ | GATT_PERMIT_WRITE, 
         0, 
-        (uint8 *)&simpleProfileChar4Config 
+        (uint8 *)&keyboardLedCharConfig 
       },
       
-      // Characteristic 4 User Description
+      // keyboard LED Characteristic User Description
       { 
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
         0, 
-        simpleProfileChar4UserDesp 
+        keyboardLedCharUserDesp 
       },
       
     // Characteristic 5 Declaration
@@ -397,15 +397,15 @@ bStatus_t SimpleProfile_AddService( uint32 services )
   uint8 status;
   
   // Allocate Client Characteristic Configuration table
-  simpleProfileChar4Config = (gattCharCfg_t *)osal_mem_alloc( sizeof(gattCharCfg_t) *
+  keyboardLedCharConfig = (gattCharCfg_t *)osal_mem_alloc( sizeof(gattCharCfg_t) *
                                                               linkDBNumConns );
-  if ( simpleProfileChar4Config == NULL )
+  if ( keyboardLedCharConfig == NULL )
   {     
     return ( bleMemAllocError );
   }
   
   // Initialize Client Characteristic Configuration attributes
-  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, simpleProfileChar4Config );
+  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, keyboardLedCharConfig );
   
   if ( services & KBD_DONGLE_SERVICE )
   {
@@ -502,10 +502,10 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
     case KEYBOARD_LED_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
-        simpleProfileChar4 = *((uint8*)value);
+        keyboardLedChar = *((uint8*)value);
         
         // See if Notification has been enabled
-        GATTServApp_ProcessCharCfg( simpleProfileChar4Config, &simpleProfileChar4, FALSE,
+        GATTServApp_ProcessCharCfg( keyboardLedCharConfig, &keyboardLedChar, FALSE,
                                     simpleProfileAttrTbl, GATT_NUM_ATTRS( simpleProfileAttrTbl ),
                                     INVALID_TASK_ID, simpleProfile_ReadAttrCB );
       }
@@ -569,7 +569,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
       break;  
 
     case KEYBOARD_LED_CHAR:
-      *((uint8*)value) = simpleProfileChar4;
+      *((uint8*)value) = keyboardLedChar;
       break;
 
     case MOUSE_MOVE_CHAR:
@@ -603,6 +603,7 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
                                            uint8 *pValue, uint8 *pLen, uint16 offset,
                                            uint8 maxLen, uint8 method )
 {
+  uint16 uuid;
   bStatus_t status = SUCCESS;
 
   // If attribute permissions require authorization to read, return error
@@ -617,47 +618,27 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
   {
     return ( ATT_ERR_ATTR_NOT_LONG );
   }
- 
-  if ( pAttr->type.len == ATT_BT_UUID_SIZE )
-  {
-    // 16-bit UUID
-    uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
-    switch ( uuid )
-    {
-      // No need for "GATT_SERVICE_UUID" or "GATT_CLIENT_CHAR_CFG_UUID" cases;
-      // gattserverapp handles those reads
-
-      // characteristics 1 and 2 have read permissions
-      // characteritisc 3 does not have read permissions; therefore it is not
-      //   included here
-      // characteristic 4 does not have read permissions, but because it
-      //   can be sent as a notification, it is included here
-
-
-      case KEYBOARD_LED_CHAR_UUID:
-        *pLen = 1;
-        pValue[0] = *pAttr->pValue;
-        break;
-
-      case MOUSE_MOVE_CHAR_UUID:
-        *pLen = MOUSE_MOVE_CHAR_LEN;
-        VOID memcpy( pValue, pAttr->pValue, MOUSE_MOVE_CHAR_LEN );
-        break;
-        
-      default:
-        // Should never get here! (characteristics 3 and 4 do not have read permissions)
-        *pLen = 0;
-        status = ATT_ERR_ATTR_NOT_FOUND;
-        break;
-    }
-  }
-  else
-  {
-    // 128-bit UUID
-    *pLen = 0;
-    status = ATT_ERR_INVALID_HANDLE;
+  
+   if (utilExtractUuid16(pAttr,&uuid) == FAILURE) {                                      
+    // Invalid handle                                                                   
+    *pLen = 0;                                                                          
+    return ATT_ERR_INVALID_HANDLE;                                                      
   }
 
+  switch ( uuid )
+  {
+    // No need for "GATT_SERVICE_UUID" or "GATT_CLIENT_CHAR_CFG_UUID" cases;
+    // gattserverapp handles those reads
+    case KEYBOARD_LED_CHAR_UUID:
+      *pLen = 1;
+      pValue[0] = *pAttr->pValue;
+      break;
+    default:
+      // Should never get here! (characteristics 3 and 4 do not have read permissions)
+      *pLen = 0;
+      status = ATT_ERR_ATTR_NOT_FOUND;
+      break;
+  }
   return ( status );
 }
 

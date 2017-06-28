@@ -391,16 +391,16 @@ void Hidapp_Init( uint8 taskId )
 
   // Setup the SimpleProfile Characteristic Values
   {
-    uint8 charValue1 = 1;
-    uint8 charValue2 = 2;
-    uint8 charValue3 = 3;
-    uint8 charValue4 = 4;
-    uint8 charValue5[MOUSE_MOVE_CHAR_LEN] = { 1, 2, 3, 4, 5 };
+    uint8 charValue1 = 0;
+    uint8 charValue2 = 0;
+    uint8 charValue3 = 0;
+    uint8 charValue4 = 0;
+    uint8 charValue5 = 0;
     SimpleProfile_SetParameter( KEYBOARD_PRESS_CHAR, sizeof ( uint8 ), &charValue1 );
     SimpleProfile_SetParameter( KEYBOARD_TYPE_CHAR, sizeof ( uint8 ), &charValue2 );
     SimpleProfile_SetParameter( KEYBOARD_REPORT_CHAR, sizeof ( uint8 ), &charValue3 );
     SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &charValue4 );
-    SimpleProfile_SetParameter( MOUSE_MOVE_CHAR, MOUSE_MOVE_CHAR_LEN, charValue5 );
+    SimpleProfile_SetParameter( MOUSE_MOVE_CHAR, sizeof ( uint8 ), &charValue5 );
   }
 
   // Register callback with SimpleGATTprofile
@@ -568,6 +568,16 @@ static void hidappHandleKeys( uint8 keys, uint8 state )
 //    }
 //  }
 //}
+
+extern HID_DATA hidData;
+void usbHidAppPoll(void) {
+  static uint8 previousLedStatus=0;
+  uint8 ledStatus=hidData.keyboardOutReport.ledStatus; 
+  if (previousLedStatus!=ledStatus){
+    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &ledStatus );
+    previousLedStatus=ledStatus;
+  }
+}
 
 
 /*********************************************************************
