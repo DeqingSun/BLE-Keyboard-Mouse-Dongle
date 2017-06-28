@@ -263,12 +263,12 @@ static uint8 advertData[] =
   GAP_ADTYPE_FLAGS,
   DEFAULT_DISCOVERABLE_MODE | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
 
-  // service UUID, to notify central devices what services are included
+/*  // service UUID, to notify central devices what services are included
   // in this peripheral
   0x03,   // length of this data
   GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
   LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
-  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),
+  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),*/
 
 };
 
@@ -291,7 +291,7 @@ static gapBondCBs_t hidapp_BondMgrCBs =
 };
 
 // Simple GATT Profile Callbacks
-static simpleProfileCBs_t hidapp_SimpleProfileCBs =
+static keyboardDongleProfileCBs_t hidapp_SimpleProfileCBs =
 {
   simpleProfileChangeCB    // Charactersitic value change callback
 };
@@ -392,12 +392,12 @@ void Hidapp_Init( uint8 taskId )
     uint8 charValue2 = 2;
     uint8 charValue3 = 3;
     uint8 charValue4 = 4;
-    uint8 charValue5[SIMPLEPROFILE_CHAR5_LEN] = { 1, 2, 3, 4, 5 };
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR1, sizeof ( uint8 ), &charValue1 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR2, sizeof ( uint8 ), &charValue2 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR3, sizeof ( uint8 ), &charValue3 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof ( uint8 ), &charValue4 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR5, SIMPLEPROFILE_CHAR5_LEN, charValue5 );
+    uint8 charValue5[MOUSE_MOVE_CHAR_LEN] = { 1, 2, 3, 4, 5 };
+    SimpleProfile_SetParameter( KEYBOARD_PRESS_CHAR, sizeof ( uint8 ), &charValue1 );
+    SimpleProfile_SetParameter( KEYBOARD_TYPE_CHAR, sizeof ( uint8 ), &charValue2 );
+    SimpleProfile_SetParameter( KEYBOARD_REPORT_CHAR, sizeof ( uint8 ), &charValue3 );
+    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &charValue4 );
+    SimpleProfile_SetParameter( MOUSE_MOVE_CHAR, MOUSE_MOVE_CHAR_LEN, charValue5 );
   }
 
   // Register callback with SimpleGATTprofile
@@ -731,7 +731,7 @@ static void performPeriodicTask( void )
   uint8 stat;
 
   // Call to retrieve the value of the third characteristic in the profile
-  stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
+  stat = SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &valueToCopy);
 
   if( stat == SUCCESS )
   {
@@ -741,7 +741,7 @@ static void performPeriodicTask( void )
      * a GATT client device, then a notification will be sent every time this
      * function is called.
      */
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
+    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof(uint8), &valueToCopy);
   }
   
   HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
@@ -762,8 +762,8 @@ static void simpleProfileChangeCB( uint8 paramID )
 
   switch( paramID )
   {
-    case SIMPLEPROFILE_CHAR1:
-      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR1, &newValue );
+    case KEYBOARD_PRESS_CHAR:
+      SimpleProfile_GetParameter( KEYBOARD_PRESS_CHAR, &newValue );
 
       #if (defined HAL_LCD) && (HAL_LCD == TRUE)
         HalLcdWriteStringValue( "Char 1:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
@@ -771,8 +771,8 @@ static void simpleProfileChangeCB( uint8 paramID )
 
       break;
 
-    case SIMPLEPROFILE_CHAR3:
-      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &newValue );
+    case KEYBOARD_REPORT_CHAR:
+      SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &newValue );
 
       #if (defined HAL_LCD) && (HAL_LCD == TRUE)
         HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );

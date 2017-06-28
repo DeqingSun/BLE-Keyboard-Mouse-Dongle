@@ -62,27 +62,31 @@ extern "C"
  */
 
 // Profile Parameters
-#define SIMPLEPROFILE_CHAR1                   0  // RW uint8 - Profile Characteristic 1 value 
-#define SIMPLEPROFILE_CHAR2                   1  // RW uint8 - Profile Characteristic 2 value
-#define SIMPLEPROFILE_CHAR3                   2  // RW uint8 - Profile Characteristic 3 value
-#define SIMPLEPROFILE_CHAR4                   3  // RW uint8 - Profile Characteristic 4 value
-#define SIMPLEPROFILE_CHAR5                   4  // RW uint8 - Profile Characteristic 4 value
+#define KEYBOARD_PRESS_CHAR                   0  // RW uint8 - Profile Characteristic 1 value 
+#define KEYBOARD_TYPE_CHAR                   1  // RW uint8 - Profile Characteristic 2 value
+#define KEYBOARD_REPORT_CHAR                   2  // RW uint8 - Profile Characteristic 3 value
+#define KEYBOARD_LED_CHAR                   3  // RW uint8 - Profile Characteristic 4 value
+#define MOUSE_MOVE_CHAR                   4  // RW uint8 - Profile Characteristic 4 value
   
-// Simple Profile Service UUID
-#define SIMPLEPROFILE_SERV_UUID               0xFFF0
+// Keyboard Dongle Profile Service UUID
+#define KBD_DONGLE_SERV_UUID               0x0000
+/* The 16 bit UUID listen above is only a part of the 
+ * full DEVICE CONTROL 128 bit UUID:                       
+ * a631XXXX-f090-4a97-8de8-4848ca7238eb */    
     
 // Key Pressed UUID
-#define SIMPLEPROFILE_CHAR1_UUID            0xFFF1
-#define SIMPLEPROFILE_CHAR2_UUID            0xFFF2
-#define SIMPLEPROFILE_CHAR3_UUID            0xFFF3
-#define SIMPLEPROFILE_CHAR4_UUID            0xFFF4
-#define SIMPLEPROFILE_CHAR5_UUID            0xFFF5
   
-// Simple Keys Profile Services bit fields
-#define SIMPLEPROFILE_SERVICE               0x00000001
+#define KEYBOARD_PRESS_CHAR_UUID            0x0001    
+#define KEYBOARD_TYPE_CHAR_UUID             0x0002 
+#define KEYBOARD_REPORT_CHAR_UUID           0x0003 
+#define KEYBOARD_LED_CHAR_UUID              0x0004   
+#define MOUSE_MOVE_CHAR_UUID                0x0005  
+  
+// Keyboard Dongle Profile Profile Services bit fields
+#define KBD_DONGLE_SERVICE               0x00000001
 
 // Length of Characteristic 5 in bytes
-#define SIMPLEPROFILE_CHAR5_LEN           5  
+#define MOUSE_MOVE_CHAR_LEN           5  
 
 /*********************************************************************
  * TYPEDEFS
@@ -92,18 +96,22 @@ extern "C"
 /*********************************************************************
  * MACROS
  */
+  
+// KBD_DONGLE_SERVICE Base 128-bit UUID: a631XXXX-f090-4a97-8de8-4848ca7238eb
+#define KBD_DONGLE_SERVICE_BASE_UUID_128( uuid )  0xeb, 0x38, 0x72, 0xca, 0x48, 0x48, 0xe8, 0x8d, \
+                                                  0x97, 0x4a, 0x90, 0xf0, LO_UINT16( uuid ), HI_UINT16( uuid ), 0x31, 0xa6
 
 /*********************************************************************
  * Profile Callbacks
  */
 
 // Callback when a characteristic value has changed
-typedef void (*simpleProfileChange_t)( uint8 paramID );
+typedef void (*keyboardDongleProfileChange_t)( uint8 paramID );
 
 typedef struct
 {
-  simpleProfileChange_t        pfnSimpleProfileChange;  // Called when characteristic value changes
-} simpleProfileCBs_t;
+  keyboardDongleProfileChange_t        pfnKeyboardDongleProfileChange;  // Called when characteristic value changes
+} keyboardDongleProfileCBs_t;
 
     
 
@@ -128,7 +136,7 @@ extern bStatus_t SimpleProfile_AddService( uint32 services );
  *
  *    appCallbacks - pointer to application callbacks.
  */
-extern bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks );
+extern bStatus_t SimpleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks );
 
 /*
  * SimpleProfile_SetParameter - Set a Simple GATT Profile parameter.

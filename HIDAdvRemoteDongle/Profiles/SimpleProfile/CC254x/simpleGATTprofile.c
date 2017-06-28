@@ -79,40 +79,40 @@
 /*********************************************************************
  * GLOBAL VARIABLES
  */
-// Simple GATT Profile Service UUID: 0xFFF0
-CONST uint8 simpleProfileServUUID[ATT_BT_UUID_SIZE] =
+// Keyboard Dongle Service UUID: 0x0000
+CONST uint8 keyboardDongleServUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_SERV_UUID), HI_UINT16(SIMPLEPROFILE_SERV_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(KBD_DONGLE_SERV_UUID),
 };
 
-// Characteristic 1 UUID: 0xFFF1
-CONST uint8 simpleProfilechar1UUID[ATT_BT_UUID_SIZE] =
+// Keyboard Press Characteristic UUID: 0x0001
+CONST uint8 keyboardPressCharUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_CHAR1_UUID), HI_UINT16(SIMPLEPROFILE_CHAR1_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(KEYBOARD_PRESS_CHAR_UUID),
 };
 
-// Characteristic 2 UUID: 0xFFF2
-CONST uint8 simpleProfilechar2UUID[ATT_BT_UUID_SIZE] =
+// Keyboard Type Characteristic UUID: 0x0002             
+CONST uint8 keyboardTypeCharUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_CHAR2_UUID), HI_UINT16(SIMPLEPROFILE_CHAR2_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(KEYBOARD_TYPE_CHAR_UUID),
 };
 
-// Characteristic 3 UUID: 0xFFF3
-CONST uint8 simpleProfilechar3UUID[ATT_BT_UUID_SIZE] =
+// Keyboard Report Characteristic UUID: 0x0003
+CONST uint8 keyboardReportCharUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_CHAR3_UUID), HI_UINT16(SIMPLEPROFILE_CHAR3_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(KEYBOARD_REPORT_CHAR_UUID),
 };
 
-// Characteristic 4 UUID: 0xFFF4
-CONST uint8 simpleProfilechar4UUID[ATT_BT_UUID_SIZE] =
+// Keyboard LED Characteristic UUID: 0x0004
+CONST uint8 keyboardLEDCharUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_CHAR4_UUID), HI_UINT16(SIMPLEPROFILE_CHAR4_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(KEYBOARD_LED_CHAR_UUID),
 };
 
-// Characteristic 5 UUID: 0xFFF5
-CONST uint8 simpleProfilechar5UUID[ATT_BT_UUID_SIZE] =
+// Mouse Move Characteristic UUID: 0x0005
+CONST uint8 mouseMoveCharUUID[ATT_UUID_SIZE] =
 { 
-  LO_UINT16(SIMPLEPROFILE_CHAR5_UUID), HI_UINT16(SIMPLEPROFILE_CHAR5_UUID)
+  KBD_DONGLE_SERVICE_BASE_UUID_128(MOUSE_MOVE_CHAR_UUID),
 };
 
 /*********************************************************************
@@ -127,14 +127,14 @@ CONST uint8 simpleProfilechar5UUID[ATT_BT_UUID_SIZE] =
  * LOCAL VARIABLES
  */
 
-static simpleProfileCBs_t *simpleProfile_AppCBs = NULL;
+static keyboardDongleProfileCBs_t *simpleProfile_AppCBs = NULL;
 
 /*********************************************************************
  * Profile Attributes - variables
  */
 
-// Simple Profile Service attribute
-static CONST gattAttrType_t simpleProfileService = { ATT_BT_UUID_SIZE, simpleProfileServUUID };
+// Keyboard Dongle Service attribute
+static CONST gattAttrType_t keyboardDongleService = { ATT_UUID_SIZE, keyboardDongleServUUID };
 
 
 // Simple Profile Characteristic 1 Properties
@@ -187,7 +187,7 @@ static uint8 simpleProfileChar4UserDesp[17] = "Characteristic 4";
 static uint8 simpleProfileChar5Props = GATT_PROP_READ;
 
 // Characteristic 5 Value
-static uint8 simpleProfileChar5[SIMPLEPROFILE_CHAR5_LEN] = { 0, 0, 0, 0, 0 };
+static uint8 simpleProfileChar5[MOUSE_MOVE_CHAR_LEN] = { 0, 0, 0, 0, 0 };
 
 // Simple Profile Characteristic 5 User Description
 static uint8 simpleProfileChar5UserDesp[17] = "Characteristic 5";
@@ -203,7 +203,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     { ATT_BT_UUID_SIZE, primaryServiceUUID }, /* type */
     GATT_PERMIT_READ,                         /* permissions */
     0,                                        /* handle */
-    (uint8 *)&simpleProfileService            /* pValue */
+    (uint8 *)&keyboardDongleService           /* pValue */
   },
 
     // Characteristic 1 Declaration
@@ -216,7 +216,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 
       // Characteristic Value 1
       { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar1UUID },
+        { ATT_UUID_SIZE, keyboardPressCharUUID },
         GATT_PERMIT_READ | GATT_PERMIT_WRITE, 
         0, 
         &simpleProfileChar1 
@@ -240,7 +240,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 
       // Characteristic Value 2
       { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar2UUID },
+        { ATT_UUID_SIZE, keyboardTypeCharUUID },
         GATT_PERMIT_READ, 
         0, 
         &simpleProfileChar2 
@@ -264,7 +264,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 
       // Characteristic Value 3
       { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar3UUID },
+        { ATT_UUID_SIZE, keyboardReportCharUUID },
         GATT_PERMIT_WRITE, 
         0, 
         &simpleProfileChar3 
@@ -288,7 +288,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 
       // Characteristic Value 4
       { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar4UUID },
+        { ATT_UUID_SIZE, keyboardLEDCharUUID },
         0, 
         0, 
         &simpleProfileChar4 
@@ -320,7 +320,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 
       // Characteristic Value 5
       { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar5UUID },
+        { ATT_UUID_SIZE, mouseMoveCharUUID },
         GATT_PERMIT_AUTHEN_READ, 
         0, 
         simpleProfileChar5 
@@ -386,7 +386,7 @@ bStatus_t SimpleProfile_AddService( uint32 services )
   // Initialize Client Characteristic Configuration attributes
   GATTServApp_InitCharCfg( INVALID_CONNHANDLE, simpleProfileChar4Config );
   
-  if ( services & SIMPLEPROFILE_SERVICE )
+  if ( services & KBD_DONGLE_SERVICE )
   {
     // Register GATT attribute list and CBs with GATT Server App
     status = GATTServApp_RegisterService( simpleProfileAttrTbl, 
@@ -412,7 +412,7 @@ bStatus_t SimpleProfile_AddService( uint32 services )
  *
  * @return  SUCCESS or bleAlreadyInRequestedMode
  */
-bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks )
+bStatus_t SimpleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks )
 {
   if ( appCallbacks )
   {
@@ -445,7 +445,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
   bStatus_t ret = SUCCESS;
   switch ( param )
   {
-    case SIMPLEPROFILE_CHAR1:
+    case KEYBOARD_PRESS_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
         simpleProfileChar1 = *((uint8*)value);
@@ -456,7 +456,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
 
-    case SIMPLEPROFILE_CHAR2:
+    case KEYBOARD_TYPE_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
         simpleProfileChar2 = *((uint8*)value);
@@ -467,7 +467,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
 
-    case SIMPLEPROFILE_CHAR3:
+    case KEYBOARD_REPORT_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
         simpleProfileChar3 = *((uint8*)value);
@@ -478,7 +478,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
 
-    case SIMPLEPROFILE_CHAR4:
+    case KEYBOARD_LED_CHAR:
       if ( len == sizeof ( uint8 ) ) 
       {
         simpleProfileChar4 = *((uint8*)value);
@@ -494,10 +494,10 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
 
-    case SIMPLEPROFILE_CHAR5:
-      if ( len == SIMPLEPROFILE_CHAR5_LEN ) 
+    case MOUSE_MOVE_CHAR:
+      if ( len == MOUSE_MOVE_CHAR_LEN ) 
       {
-        VOID memcpy( simpleProfileChar5, value, SIMPLEPROFILE_CHAR5_LEN );
+        VOID memcpy( simpleProfileChar5, value, MOUSE_MOVE_CHAR_LEN );
       }
       else
       {
@@ -531,24 +531,24 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
   bStatus_t ret = SUCCESS;
   switch ( param )
   {
-    case SIMPLEPROFILE_CHAR1:
+    case KEYBOARD_PRESS_CHAR:
       *((uint8*)value) = simpleProfileChar1;
       break;
 
-    case SIMPLEPROFILE_CHAR2:
+    case KEYBOARD_TYPE_CHAR:
       *((uint8*)value) = simpleProfileChar2;
       break;      
 
-    case SIMPLEPROFILE_CHAR3:
+    case KEYBOARD_REPORT_CHAR:
       *((uint8*)value) = simpleProfileChar3;
       break;  
 
-    case SIMPLEPROFILE_CHAR4:
+    case KEYBOARD_LED_CHAR:
       *((uint8*)value) = simpleProfileChar4;
       break;
 
-    case SIMPLEPROFILE_CHAR5:
-      VOID memcpy( value, simpleProfileChar5, SIMPLEPROFILE_CHAR5_LEN );
+    case MOUSE_MOVE_CHAR:
+      VOID memcpy( value, simpleProfileChar5, MOUSE_MOVE_CHAR_LEN );
       break;      
       
     default:
@@ -607,16 +607,16 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
       //   included here
       // characteristic 4 does not have read permissions, but because it
       //   can be sent as a notification, it is included here
-      case SIMPLEPROFILE_CHAR1_UUID:
-      case SIMPLEPROFILE_CHAR2_UUID:
-      case SIMPLEPROFILE_CHAR4_UUID:
+      case KEYBOARD_PRESS_CHAR_UUID:
+      case KEYBOARD_TYPE_CHAR_UUID:
+      case KEYBOARD_LED_CHAR_UUID:
         *pLen = 1;
         pValue[0] = *pAttr->pValue;
         break;
 
-      case SIMPLEPROFILE_CHAR5_UUID:
-        *pLen = SIMPLEPROFILE_CHAR5_LEN;
-        VOID memcpy( pValue, pAttr->pValue, SIMPLEPROFILE_CHAR5_LEN );
+      case MOUSE_MOVE_CHAR_UUID:
+        *pLen = MOUSE_MOVE_CHAR_LEN;
+        VOID memcpy( pValue, pAttr->pValue, MOUSE_MOVE_CHAR_LEN );
         break;
         
       default:
@@ -670,8 +670,8 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
     uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
     switch ( uuid )
     {
-      case SIMPLEPROFILE_CHAR1_UUID:
-      case SIMPLEPROFILE_CHAR3_UUID:
+      case KEYBOARD_PRESS_CHAR_UUID:
+      case KEYBOARD_REPORT_CHAR_UUID:
 
         //Validate the value
         // Make sure it's not a blob oper
@@ -695,11 +695,11 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
 
           if( pAttr->pValue == &simpleProfileChar1 )
           {
-            notifyApp = SIMPLEPROFILE_CHAR1;        
+            notifyApp = KEYBOARD_PRESS_CHAR;        
           }
           else
           {
-            notifyApp = SIMPLEPROFILE_CHAR3;           
+            notifyApp = KEYBOARD_REPORT_CHAR;           
           }
         }
              
@@ -723,9 +723,9 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
   }
 
   // If a charactersitic value changed then callback function to notify application of change
-  if ( (notifyApp != 0xFF ) && simpleProfile_AppCBs && simpleProfile_AppCBs->pfnSimpleProfileChange )
+  if ( (notifyApp != 0xFF ) && simpleProfile_AppCBs && simpleProfile_AppCBs->pfnKeyboardDongleProfileChange )
   {
-    simpleProfile_AppCBs->pfnSimpleProfileChange( notifyApp );  
+    simpleProfile_AppCBs->pfnKeyboardDongleProfileChange( notifyApp );  
   }
   
   return ( status );
