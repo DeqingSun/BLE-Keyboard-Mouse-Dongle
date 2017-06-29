@@ -70,7 +70,7 @@
  * CONSTANTS
  */
 
-#define SERVAPP_NUM_ATTR_SUPPORTED        17
+#define SERVAPP_NUM_ATTR_SUPPORTED        20
 
 /*********************************************************************
  * TYPEDEFS
@@ -114,6 +114,13 @@ CONST uint8 mouseMoveCharUUID[ATT_UUID_SIZE] =
 { 
   KBD_DONGLE_SERVICE_BASE_UUID_128(MOUSE_MOVE_CHAR_UUID),
 };
+
+// Consumer Report Characteristic UUID: 0x0006
+CONST uint8 consumerReportCharUUID[ATT_UUID_SIZE] =
+{ 
+  KBD_DONGLE_SERVICE_BASE_UUID_128(CONSUMER_REPORT_CHAR_UUID),
+};
+
 
 /*********************************************************************
  * EXTERNAL VARIABLES
@@ -191,6 +198,15 @@ static uint8 mouseMoveChar[MOUSE_MOVE_CHAR_LEN] = { 0 };
 
 // Mouse Move Characteristic User Description
 static uint8 mouseMoveCharUserDesp[6] = "MOUSE";
+
+// Consumer Report Characteristic Properties
+static uint8 consumerReportCharProps = GATT_PROP_WRITE;
+
+// Consumer Report Characteristic Value
+static uint8 consumerReportChar[2] = { 0 };
+
+// Consumer Report Characteristic User Description
+static uint8 consumerReportCharUserDesp[9] = "CONSUMER";
 
 /*********************************************************************
  * Profile Attributes - Table
@@ -332,6 +348,30 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         GATT_PERMIT_READ, 
         0, 
         mouseMoveCharUserDesp 
+      },
+      
+    // consumer Report Characteristic Declaration
+    { 
+      { ATT_BT_UUID_SIZE, characterUUID },
+      GATT_PERMIT_READ, 
+      0,
+      &consumerReportCharProps 
+    },
+
+      // consumer Report Characteristic Value
+      { 
+        { ATT_UUID_SIZE, consumerReportCharUUID },
+        GATT_PERMIT_WRITE, 
+        0, 
+        consumerReportChar 
+      },
+
+      // consumer Report Characteristic User Description
+      { 
+        { ATT_BT_UUID_SIZE, charUserDescUUID },
+        GATT_PERMIT_READ, 
+        0, 
+        consumerReportCharUserDesp 
       },
 };
 
@@ -526,6 +566,17 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
       
+    case CONSUMER_REPORT_CHAR:
+      if ( len <= 2 ) 
+      {
+        (void)memcpy(consumerReportChar, value, len);
+      }
+      else
+      {
+        ret = bleInvalidRange;
+      }
+      break;
+      
     default:
       ret = INVALIDPARAMETER;
       break;
@@ -575,6 +626,10 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
     case MOUSE_MOVE_CHAR:
       (void)memcpy(value, mouseMoveChar, MOUSE_MOVE_CHAR_LEN );
       break;      
+      
+    case CONSUMER_REPORT_CHAR:
+      (void)memcpy(value, consumerReportChar, 2 );
+      break;     
       
     default:
       ret = INVALIDPARAMETER;
@@ -757,6 +812,26 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
         notifyApp = MOUSE_MOVE_CHAR;        
       }
       break;
+    case CONSUMER_REPORT_CHAR_UUID:
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 ){
+        if ( len >2 ){
+          status = ATT_ERR_INVALID_VALUE_SIZE;
+        }
+      }else{
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
+      //Write the value
+      if ( status == SUCCESS )
+      { 
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;
+        (void)memset(pCurValue, 0, 2); 
+        (void)memcpy(pCurValue, pValue, len); 
+        notifyApp = CONSUMER_REPORT_CHAR;        
+      }
+      break;  
+
     case GATT_CLIENT_CHAR_CFG_UUID:
       status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                offset, GATT_CLIENT_CFG_NOTIFY );

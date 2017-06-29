@@ -396,11 +396,13 @@ void Hidapp_Init( uint8 taskId )
     uint8 charValue3 = 0;
     uint8 charValue4 = 0;
     uint8 charValue5 = 0;
+    uint8 charValue6 = 0;
     SimpleProfile_SetParameter( KEYBOARD_PRESS_CHAR, sizeof ( uint8 ), &charValue1 );
     SimpleProfile_SetParameter( KEYBOARD_TYPE_CHAR, sizeof ( uint8 ), &charValue2 );
     SimpleProfile_SetParameter( KEYBOARD_REPORT_CHAR, sizeof ( uint8 ), &charValue3 );
     SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &charValue4 );
     SimpleProfile_SetParameter( MOUSE_MOVE_CHAR, sizeof ( uint8 ), &charValue5 );
+    SimpleProfile_SetParameter( CONSUMER_REPORT_CHAR, sizeof ( uint8 ), &charValue6 );
   }
 
   // Register callback with SimpleGATTprofile
@@ -623,7 +625,7 @@ static uint8 hidappSendInReport( )
       return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_MOUSE_EP, sizeof(MOUSE_IN_REPORT)) );
       break;
     case USB_HID_CC_EP:
-      return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_CC_EP, 0) ); //need more work HERE !!!!!
+      return ( hidSendHidInReport(hidReportBuffer[0].data, USB_HID_CC_EP, 2) );
       break;
     }
   }
@@ -740,22 +742,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
  */
 static void performPeriodicTask( void )
 {
-  uint8 valueToCopy;
-  uint8 stat;
 
-  // Call to retrieve the value of the third characteristic in the profile
-  stat = SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &valueToCopy);
-
-  if( stat == SUCCESS )
-  {
-    /*
-     * Call to set that value of the fourth characteristic in the profile. Note
-     * that if notifications of the fourth characteristic have been enabled by
-     * a GATT client device, then a notification will be sent every time this
-     * function is called.
-     */
-    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof(uint8), &valueToCopy);
-  }
   
   HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
 }
@@ -780,7 +767,7 @@ static void simpleProfileChangeCB( uint8 paramID )
         uint8 hidCode = HIDTable[newValue];
         uint8 modifierCode = modifierTable[newValue];
         if ((hidCode!=0) || (modifierCode!=0)){
-          if (hidReportBufLength==0){
+          if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
             hidReportBufferAppend(USB_HID_KBD_EP,modifierCode,0,hidCode,0,0,0,0,0);
             hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
             reportRetries = 0;
@@ -820,7 +807,7 @@ static void simpleProfileChangeCB( uint8 paramID )
       {
         uint8 reportData[8];
         SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, reportData );
-        if (hidReportBufLength==0){
+        if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
           hidReportBufferAppend(USB_HID_KBD_EP,reportData[0],reportData[1],reportData[2],reportData[3],reportData[4],reportData[5],reportData[6],reportData[7]);
           reportRetries = 0;
           osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
@@ -829,12 +816,25 @@ static void simpleProfileChangeCB( uint8 paramID )
       }
       break;
       
-      case MOUSE_MOVE_CHAR:
+    case MOUSE_MOVE_CHAR:
       {
         uint8 reportData[MOUSE_MOVE_CHAR_LEN];
         SimpleProfile_GetParameter( MOUSE_MOVE_CHAR, reportData );
-        if (hidReportBufLength==0){
+        if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
           hidReportBufferAppend(USB_HID_MOUSE_EP,reportData[0],reportData[1],reportData[2],reportData[3],0,0,0,0);
+          reportRetries = 0;
+          osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+          osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+        }
+      }
+      break;
+      
+    case CONSUMER_REPORT_CHAR:
+      {
+        uint8 reportData[2];
+        SimpleProfile_GetParameter( CONSUMER_REPORT_CHAR, reportData );
+        if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
+          hidReportBufferAppend(USB_HID_CC_EP,reportData[0],reportData[1],0,0,0,0,0,0);
           reportRetries = 0;
           osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
           osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );

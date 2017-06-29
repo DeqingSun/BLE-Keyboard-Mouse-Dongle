@@ -63,10 +63,11 @@ extern "C"
 
 // Profile Parameters
 #define KEYBOARD_PRESS_CHAR                   0  // RW uint8 - Profile Characteristic 1 value 
-#define KEYBOARD_TYPE_CHAR                   1  // RW uint8 - Profile Characteristic 2 value
-#define KEYBOARD_REPORT_CHAR                   2  // RW uint8 - Profile Characteristic 3 value
-#define KEYBOARD_LED_CHAR                   3  // RW uint8 - Profile Characteristic 4 value
-#define MOUSE_MOVE_CHAR                   4  // RW uint8 - Profile Characteristic 4 value
+#define KEYBOARD_TYPE_CHAR                    1  // RW uint8 - Profile Characteristic 2 value
+#define KEYBOARD_REPORT_CHAR                  2  // RW uint8 - Profile Characteristic 3 value
+#define KEYBOARD_LED_CHAR                     3  // RW uint8 - Profile Characteristic 4 value
+#define MOUSE_MOVE_CHAR                       4  // RW uint8 - Profile Characteristic 5 value
+#define CONSUMER_REPORT_CHAR                  5  // RW uint8 - Profile Characteristic 6 value
   
 // Keyboard Dongle Profile Service UUID
 #define KBD_DONGLE_SERV_UUID               0x0000
@@ -81,6 +82,7 @@ extern "C"
 #define KEYBOARD_REPORT_CHAR_UUID           0x0003 
 #define KEYBOARD_LED_CHAR_UUID              0x0004   
 #define MOUSE_MOVE_CHAR_UUID                0x0005  
+#define CONSUMER_REPORT_CHAR_UUID           0x0006
   
 // Keyboard Dongle Profile Profile Services bit fields
 #define KBD_DONGLE_SERVICE               0x00000001
