@@ -85,8 +85,8 @@ extern "C"
 // Keyboard Dongle Profile Profile Services bit fields
 #define KBD_DONGLE_SERVICE               0x00000001
 
-// Length of Characteristic 5 in bytes
-#define MOUSE_MOVE_CHAR_LEN           5  
+// Length of Characteristic in bytes
+#define MOUSE_MOVE_CHAR_LEN           4 
 
 /*********************************************************************
  * TYPEDEFS

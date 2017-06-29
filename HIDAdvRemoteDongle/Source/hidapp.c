@@ -828,6 +828,19 @@ static void simpleProfileChangeCB( uint8 paramID )
         }
       }
       break;
+      
+      case MOUSE_MOVE_CHAR:
+      {
+        uint8 reportData[MOUSE_MOVE_CHAR_LEN];
+        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &reportData );
+        if (hidReportBufLength==0){
+          hidReportBufferAppend(USB_HID_MOUSE_EP,reportData[0],reportData[1],reportData[2],reportData[3],0,0,0,0);
+          reportRetries = 0;
+          osal_stop_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY );
+          osal_start_timerEx( hidappTaskId, HIDAPP_EVT_REPORT_RETRY, 0 );
+        }
+      }
+      break;
 
     default:
       // should not reach here!

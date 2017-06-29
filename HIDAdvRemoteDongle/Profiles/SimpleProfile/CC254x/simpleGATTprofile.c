@@ -183,14 +183,14 @@ static gattCharCfg_t *keyboardLedCharConfig;
 static uint8 keyboardLedCharUserDesp[8] = "KBD LED";
 
 
-// Simple Profile Characteristic 5 Properties
-static uint8 simpleProfileChar5Props = GATT_PROP_READ;
+// Mouse Move Characteristic Properties
+static uint8 mouseMoveCharProps = GATT_PROP_WRITE;
 
-// Characteristic 5 Value
-static uint8 simpleProfileChar5[MOUSE_MOVE_CHAR_LEN] = { 0, 0, 0, 0, 0 };
+// Mouse Move Characteristic Value
+static uint8 mouseMoveChar[MOUSE_MOVE_CHAR_LEN] = { 0 };
 
-// Simple Profile Characteristic 5 User Description
-static uint8 simpleProfileChar5UserDesp[17] = "Characteristic 5";
+// Mouse Move Characteristic User Description
+static uint8 mouseMoveCharUserDesp[6] = "MOUSE";
 
 /*********************************************************************
  * Profile Attributes - Table
@@ -310,28 +310,28 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
         keyboardLedCharUserDesp 
       },
       
-    // Characteristic 5 Declaration
+    // mouse Move Characteristic Declaration
     { 
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ, 
       0,
-      &simpleProfileChar5Props 
+      &mouseMoveCharProps 
     },
 
-      // Characteristic Value 5
+      // mouse Move Characteristic Value
       { 
         { ATT_UUID_SIZE, mouseMoveCharUUID },
-        GATT_PERMIT_AUTHEN_READ, 
+        GATT_PERMIT_WRITE, 
         0, 
-        simpleProfileChar5 
+        mouseMoveChar 
       },
 
-      // Characteristic 5 User Description
+      // mouse Move Characteristic User Description
       { 
         { ATT_BT_UUID_SIZE, charUserDescUUID },
         GATT_PERMIT_READ, 
         0, 
-        simpleProfileChar5UserDesp 
+        mouseMoveCharUserDesp 
       },
 };
 
@@ -516,9 +516,9 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
       break;
 
     case MOUSE_MOVE_CHAR:
-      if ( len == MOUSE_MOVE_CHAR_LEN ) 
+      if ( len <= MOUSE_MOVE_CHAR_LEN ) 
       {
-        VOID memcpy( simpleProfileChar5, value, MOUSE_MOVE_CHAR_LEN );
+        (void)memcpy(mouseMoveChar, value, len);
       }
       else
       {
@@ -573,7 +573,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
       break;
 
     case MOUSE_MOVE_CHAR:
-      VOID memcpy( value, simpleProfileChar5, MOUSE_MOVE_CHAR_LEN );
+      (void)memcpy(value, mouseMoveChar, MOUSE_MOVE_CHAR_LEN );
       break;      
       
     default:
@@ -738,6 +738,25 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
         notifyApp = KEYBOARD_REPORT_CHAR;        
       }
       break;      
+    case MOUSE_MOVE_CHAR_UUID:
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 ){
+        if ( len >MOUSE_MOVE_CHAR_LEN ){
+          status = ATT_ERR_INVALID_VALUE_SIZE;
+        }
+      }else{
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
+      //Write the value
+      if ( status == SUCCESS )
+      { 
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;
+        (void)memset(pCurValue, 0, MOUSE_MOVE_CHAR_LEN); 
+        (void)memcpy(pCurValue, pValue, len); 
+        notifyApp = MOUSE_MOVE_CHAR;        
+      }
+      break;
     case GATT_CLIENT_CHAR_CFG_UUID:
       status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                offset, GATT_CLIENT_CFG_NOTIFY );
