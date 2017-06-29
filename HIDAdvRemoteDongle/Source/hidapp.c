@@ -794,7 +794,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case KEYBOARD_TYPE_CHAR:
     {
       uint8 typeData[9];
-      SimpleProfile_GetParameter( KEYBOARD_TYPE_CHAR, &typeData );
+      SimpleProfile_GetParameter( KEYBOARD_TYPE_CHAR, typeData );
       int stringLen = strlen((const char *)typeData);
       if (stringLen>8) stringLen=8;
       for (uint8 i=0;i<stringLen;i++){
@@ -819,7 +819,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case KEYBOARD_REPORT_CHAR:
       {
         uint8 reportData[8];
-        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &reportData );
+        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, reportData );
         if (hidReportBufLength==0){
           hidReportBufferAppend(USB_HID_KBD_EP,reportData[0],reportData[1],reportData[2],reportData[3],reportData[4],reportData[5],reportData[6],reportData[7]);
           reportRetries = 0;
@@ -832,7 +832,7 @@ static void simpleProfileChangeCB( uint8 paramID )
       case MOUSE_MOVE_CHAR:
       {
         uint8 reportData[MOUSE_MOVE_CHAR_LEN];
-        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, &reportData );
+        SimpleProfile_GetParameter( MOUSE_MOVE_CHAR, reportData );
         if (hidReportBufLength==0){
           hidReportBufferAppend(USB_HID_MOUSE_EP,reportData[0],reportData[1],reportData[2],reportData[3],0,0,0,0);
           reportRetries = 0;

@@ -559,8 +559,8 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
     case KEYBOARD_TYPE_CHAR:
       {
         int stringLen = strlen((const char *)keyboardTypeChar);
-        if (stringLen>(sizeof(keyboardTypeChar))) stringLen=(sizeof(keyboardTypeChar));
-        (void)memcpy(value, keyboardTypeChar, stringLen);
+        if (stringLen>(sizeof(keyboardTypeChar)-1)) stringLen=(sizeof(keyboardTypeChar)-1);
+        (void)memcpy(value, keyboardTypeChar, stringLen+1);
       }
       break;      
 
