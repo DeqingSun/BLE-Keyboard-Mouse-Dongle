@@ -1,0 +1,27 @@
+//setup pins
+
+P1DIR|=0xFC;
+P1&=~(0xFC);
+
+//SPI data out
+
+P1^=(1<<3);
+P1|=(1<<5);
+P1&=~(1<<6);
+uint32 datain=((uint32)usbSetupData.pBuffer);
+        
+for (uint8 i=0;i<4;i++){
+  uint8 dataB = datain>>(8*(3-i)); 
+  P1&=~(1<<5);
+  for (uint8 j=0;j<8;j++){
+    P1&=~(1<<6);
+    if (dataB&(1<<(7-j))){
+      P1|=(1<<7);
+    }else{
+      P1&=~(1<<7);
+    }
+    P1|=(1<<6);
+  }
+  P1&=~(1<<6);
+  P1|=(1<<5);
+}
