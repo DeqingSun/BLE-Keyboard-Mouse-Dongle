@@ -308,6 +308,9 @@ static uint8 hidReportBufLength = 0;
  * ------------------------------------------------------------------------------------------------
  */
 
+extern uint8 string2DescMEM[];
+extern uint8 string3DescMEM[];
+
 /*******************************************************************************
  *
  * @fn      hidappInit
@@ -632,7 +635,7 @@ static uint8 hidappSendInReport( )
   return true;
 }
 
-
+#define toHex(i) (((i) <= 9)?('0' +(i)):((i)+'@'-9))
 
 /*********************************************************************
  * @fn      peripheralStateNotificationCB
@@ -669,7 +672,15 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
         systemId[5] = ownAddress[3];
 
         DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
-
+        
+        for (uint8 i=0;i<2;i++){
+          string2DescMEM[18+i*4]=toHex(ownAddress[1-i]>>4);
+          string2DescMEM[20+i*4]=toHex(ownAddress[1-i]&0x0F);
+        }
+        for (uint8 i=0;i<6;i++){
+          string3DescMEM[2+i*4]=toHex(ownAddress[5-i]>>4);
+          string3DescMEM[4+i*4]=toHex(ownAddress[5-i]&0x0F);
+        }
       }
       break;
 

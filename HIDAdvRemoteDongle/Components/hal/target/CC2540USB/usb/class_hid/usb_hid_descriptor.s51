@@ -235,42 +235,33 @@ string0DescEnd:
 string1Desc:    ; Manufacturer
                 DB string1DescEnd - string1Desc ; bLength
                 DB DESC_TYPE_STRING             ; bDescriptorType
-                DB 'T', 0                       ; unicode string
+                DB 'D', 0                       ; unicode string
                 DB 'e', 0
-                DB 'x', 0
-                DB 'a', 0
-                DB 's', 0
+                DB 'q', 0
+                DB 'i', 0
+                DB 'n', 0
+                DB 'g', 0
                 DB ' ', 0
-                DB 'I', 0
-                DB 'n', 0
-                DB 's', 0
-                DB 't', 0
-                DB 'r', 0
+                DB 'S', 0
                 DB 'u', 0
-                DB 'm', 0
-                DB 'e', 0
                 DB 'n', 0
-                DB 't', 0
-                DB 's', 0
 string1DescEnd:
 
 string2Desc:    ; Product
                 DB string2DescEnd - string2Desc ; bLength
                 DB DESC_TYPE_STRING             ; bDescriptorType
-                DB 'U', 0                       ; unicode string
-                DB 'S', 0
+                DB 'K', 0                       ; unicode string
                 DB 'B', 0
-                DB ' ', 0
-                DB 'C', 0
-                DB 'C', 0
-                DB '2', 0
-                DB '5', 0
-                DB '4', 0
-                DB '0', 0
-                DB ' ', 0
-                DB 'H', 0
-                DB 'I', 0
                 DB 'D', 0
+                DB ' ', 0
+				DB 'B', 0
+				DB 'L', 0
+				DB 'E', 0
+				DB ' ', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
 string2DescEnd:
 
 ; To enable multiple HID dongles to connect to a PC,
@@ -280,7 +271,16 @@ string3Desc:    ; Serial Number
                 DB DESC_TYPE_STRING ; bDescriptorType
                 DB '0', 0
                 DB '0', 0
-                DB '1', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
+                DB '0', 0
 string3DescEnd:
 usbDescEnd:
 ;;-------------------------------------------------------------------------------------------------------

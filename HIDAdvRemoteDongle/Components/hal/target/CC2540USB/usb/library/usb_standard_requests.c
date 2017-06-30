@@ -341,6 +341,12 @@ void usbsrSetAddress(void)
  * <b>Data (IN)</b>:
  * The descriptor(s)
  */
+
+extern void* string2Desc;
+uint8 string2DescMEM[26]={0};
+extern void* string3Desc;
+uint8 string3DescMEM[26]={0};
+
 void usbsrGetDescriptor(void)
 {
    uint8 n;
@@ -366,6 +372,25 @@ void usbsrGetDescriptor(void)
       // OPT: Implement language ID
       usbSetupData.pBuffer = (uint8 __code*) usbdpGetStringDesc(LO_UINT16(usbSetupHeader.value));
       usbSetupData.bytesLeft = usbSetupData.pBuffer[DESC_LENGTH_IDX];
+      
+      if (usbSetupData.pBuffer==(uint8 __code*)&string2Desc){   //move Product string to memory for editing
+        for (uint8 i=0;i<sizeof(string2DescMEM);i++){
+          if (string2DescMEM[i]==0){
+            string2DescMEM[i]=usbSetupData.pBuffer[i];
+          }
+        }
+        usbSetupData.pBuffer=string2DescMEM;
+      }
+      if (usbSetupData.pBuffer==(uint8 __code*)&string3Desc){   //move Serial Number string to memory for editing
+        asm("nop");
+        for (uint8 i=0;i<sizeof(string3DescMEM);i++){
+          if (string3DescMEM[i]==0){
+            string3DescMEM[i]=usbSetupData.pBuffer[i];
+          }
+        }
+        usbSetupData.pBuffer=string3DescMEM;
+      }
+      
       break;
 
    // Other descriptor type
