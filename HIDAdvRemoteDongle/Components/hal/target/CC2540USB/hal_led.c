@@ -160,6 +160,13 @@ uint8 HalLedSet (uint8 leds, uint8 mode)
       /* Default flash, N times, D% duty cycle */
       HalLedBlink (leds, HAL_LED_DEFAULT_FLASH_COUNT, HAL_LED_DEFAULT_DUTY_CYCLE, HAL_LED_DEFAULT_FLASH_TIME);
       break;
+      
+    case HAL_LED_MODE_BLINKSLOW:
+      HalLedBlink (leds, 0, 5, 2000);
+      break;
+    case HAL_LED_MODE_BLINKFAST:
+      HalLedBlink (leds, 0, 5, 500);
+      break;
 
     case HAL_LED_MODE_ON:
     case HAL_LED_MODE_OFF:

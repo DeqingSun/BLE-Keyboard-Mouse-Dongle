@@ -79,6 +79,8 @@ extern "C"
 #define HAL_LED_MODE_BLINK   0x02
 #define HAL_LED_MODE_FLASH   0x04
 #define HAL_LED_MODE_TOGGLE  0x08
+#define HAL_LED_MODE_BLINKSLOW   0x10
+#define HAL_LED_MODE_BLINKFAST   0x20
 
 /* Defaults */
 #define HAL_LED_DEFAULT_MAX_LEDS      4

@@ -694,35 +694,17 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
       break;
 
     case GAPROLE_ADVERTISING:
-      {
-      }
+      HalLedSet (HAL_LED_2, HAL_LED_MODE_BLINKSLOW);
       break;
-
-      
-      
     case GAPROLE_CONNECTED:
-      {        
-
-      }
-      break;
-
     case GAPROLE_CONNECTED_ADV:
-      {
-
-      }
-      break;      
+      HalLedSet (HAL_LED_2, HAL_LED_MODE_BLINKFAST);
+      break;    
     case GAPROLE_WAITING:
-      {
-
-      }
-      break;
-
     case GAPROLE_WAITING_AFTER_TIMEOUT:
-      {
-
-      }
+      HalLedSet( (HAL_LED_2), HAL_LED_MODE_OFF );
       break;
-
+      
     case GAPROLE_ERROR:
       {
 
@@ -763,8 +745,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 static void performPeriodicTask( void )
 {
 
-  
-  HalLedSet(HAL_LED_2, HAL_LED_MODE_TOGGLE );
+
 }
 
 /*********************************************************************
