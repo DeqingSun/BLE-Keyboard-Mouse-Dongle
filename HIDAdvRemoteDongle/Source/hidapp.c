@@ -180,6 +180,8 @@ typedef struct {
  * ------------------------------------------------------------------------------------------------
  */
 
+#define toHex(i) (((i) <= 9)?('0' +(i)):((i)+'@'-9))
+
 /* ------------------------------------------------------------------------------------------------
  *                                           Local Functions
  * ------------------------------------------------------------------------------------------------
@@ -219,27 +221,20 @@ static gaprole_States_t gapProfileState = GAPROLE_INIT;
 static uint8 scanRspData[] =
 {
   // complete name
-  0x14,   // length of this data
+  0x0D,   // length of this data
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  0x53,   // 'S'
-  0x69,   // 'i'
-  0x6d,   // 'm'
-  0x70,   // 'p'
-  0x6c,   // 'l'
-  0x65,   // 'e'
-  0x42,   // 'B'
-  0x4c,   // 'L'
-  0x45,   // 'E'
-  0x50,   // 'P'
-  0x65,   // 'e'
-  0x72,   // 'r'
-  0x69,   // 'i'
-  0x70,   // 'p'
-  0x68,   // 'h'
-  0x65,   // 'e'
-  0x72,   // 'r'
-  0x61,   // 'a'
-  0x6c,   // 'l'
+  'K',   // 'K'
+  'B',   // 'B'
+  'D',   // 'D'
+  ' ',   // ' '
+  'B',   // 'B'
+  'L',   // 'L'
+  'E',   // 'E'
+  ' ',   // ' '
+  '0',   // '0'
+  '0',   // '0'
+  '0',   // '0'
+  '0',   // '0'
 
   // connection interval range
   0x05,   // length of this data
@@ -276,7 +271,7 @@ static uint8 advertData[] =
 };
 
 // GAP GATT Attributes
-static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "Simple BLE Peripheral";
+static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "KBD BLE 0000";
 
 
 // GAP Role Callbacks
@@ -302,6 +297,7 @@ static keyboardDongleProfileCBs_t hidapp_KeyboardDongleProfileCBs =
 static HID_REPORT_EPDATA_t hidReportBuffer[HID_REPORT_BUFFER_LEN];
 static uint8 hidReportBufLength = 0;
 
+__xdata __no_init uint8 primaryMac[6] @ 0x780E;
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Global Variables
@@ -325,6 +321,24 @@ void Hidapp_Init( uint8 taskId )
 {
   // save task ID assigned by OSAL
   hidappTaskId = taskId;
+  
+  {
+    
+    for (uint8 i=0;i<2;i++){
+      string2DescMEM[18+i*4]=toHex(primaryMac[1-i]>>4);
+      string2DescMEM[20+i*4]=toHex(primaryMac[1-i]&0x0F);
+    }
+    for (uint8 i=0;i<6;i++){
+      string3DescMEM[2+i*4]=toHex(primaryMac[5-i]>>4);
+      string3DescMEM[4+i*4]=toHex(primaryMac[5-i]&0x0F);
+    }
+    for (uint8 i=0;i<2;i++){
+      scanRspData[10+i*2]=toHex(primaryMac[1-i]>>4);
+      scanRspData[11+i*2]=toHex(primaryMac[1-i]&0x0F);
+      attDeviceName[8+i*2]=toHex(primaryMac[1-i]>>4);
+      attDeviceName[9+i*2]=toHex(primaryMac[1-i]&0x0F);
+    }
+  }
 
   // Setup the GAP
   VOID GAP_SetParamValue( TGAP_CONN_PAUSE_PERIPHERAL, DEFAULT_CONN_PAUSE_PERIPHERAL );
@@ -635,8 +649,6 @@ static uint8 hidappSendInReport( )
   return true;
 }
 
-#define toHex(i) (((i) <= 9)?('0' +(i)):((i)+'@'-9))
-
 /*********************************************************************
  * @fn      peripheralStateNotificationCB
  *
@@ -672,15 +684,6 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
         systemId[5] = ownAddress[3];
 
         DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
-        
-        for (uint8 i=0;i<2;i++){
-          string2DescMEM[18+i*4]=toHex(ownAddress[1-i]>>4);
-          string2DescMEM[20+i*4]=toHex(ownAddress[1-i]&0x0F);
-        }
-        for (uint8 i=0;i<6;i++){
-          string3DescMEM[2+i*4]=toHex(ownAddress[5-i]>>4);
-          string3DescMEM[4+i*4]=toHex(ownAddress[5-i]&0x0F);
-        }
       }
       break;
 
