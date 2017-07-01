@@ -5,6 +5,67 @@
 
 <body>
     Hello world
+    <button type="button" id="buttonConnect">Connect</button>
+
+
+    <script>
+        class KeyboardDongle {
+
+            constructor() {
+                this.device = null;
+                this.onDisconnected = this.onDisconnected.bind(this);
+            }
+
+            request() {
+                let options = {
+                    "filters": [{
+                        "namePrefix": "KBD"
+                        , "services": ["a6310000-f090-4a97-8de8-4848ca7238eb"]
+      }]
+                };
+                return navigator.bluetooth.requestDevice(options)
+                    .then(device => {
+                        this.device = device;
+                        this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
+                    });
+            }
+
+            connect() {
+                if (!this.device) {
+                    return Promise.reject('Device is not connected.');
+                }
+                return this.device.gatt.connect();
+            }
+
+            writeTypeCharacter(data) {
+                return this.device.gatt.getPrimaryService("a6310000-f090-4a97-8de8-4848ca7238eb")
+                    .then(service => service.getCharacteristic("a6310001-f090-4a97-8de8-4848ca7238eb"))
+                    .then(characteristic => characteristic.writeValue(data));
+            }
+
+            disconnect() {
+                if (!this.device) {
+                    return Promise.reject('Device is not connected.');
+                }
+                return this.device.gatt.disconnect();
+            }
+
+            onDisconnected() {
+                console.log('Device is disconnected.');
+            }
+        }
+
+        var keyboardDongle = new KeyboardDongle();
+
+        document.querySelector('button').addEventListener('click', event => {
+            keyboardDongle.request()
+                .then(_ => keyboardDongle.connect())
+                .then(_ => { /* Do something with keyboardDongle... */ })
+                .catch(error => {
+                    console.log(error)
+                });
+        });
+    </script>
 </body>
 
 </html>
