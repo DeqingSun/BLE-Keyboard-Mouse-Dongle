@@ -164,7 +164,7 @@
 
 #define HIDAPP_INPUT_RETRY_TIMEOUT            5 // ms
 
-#define HID_REPORT_BUFFER_LEN                 9
+#define HID_REPORT_BUFFER_LEN                 11
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
@@ -792,6 +792,7 @@ static void keyboardDongleProfileChangeCB( uint8 paramID )
     case KEYBOARD_TYPE_CHAR:
     {
       uint8 typeData[9];
+      uint8 previousTypeData=0;
       KeyboardDongleProfile_GetParameter( KEYBOARD_TYPE_CHAR, typeData );
       int stringLen = strlen((const char *)typeData);
       if (stringLen>8) stringLen=8;
@@ -801,11 +802,16 @@ static void keyboardDongleProfileChangeCB( uint8 paramID )
           uint8 hidCode = HIDTable[newValue];
           uint8 modifierCode = modifierTable[newValue];
           if ((hidCode!=0) || (modifierCode!=0)){
+            if (previousTypeData==newValue)
+            if (hidReportBufLength<(HID_REPORT_BUFFER_LEN-1)){  //insert release to type twice
+              hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
+            }
             if (hidReportBufLength<(HID_REPORT_BUFFER_LEN-1)){
               hidReportBufferAppend(USB_HID_KBD_EP,modifierCode,0,hidCode,0,0,0,0,0);
             }
           }
         }
+        previousTypeData=newValue;
       }
       if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)) hidReportBufferAppend(USB_HID_KBD_EP,0,0,0,0,0,0,0,0);
       reportRetries = 0;
