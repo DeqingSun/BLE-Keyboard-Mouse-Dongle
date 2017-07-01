@@ -1,8 +1,8 @@
 /******************************************************************************
 
- @file  simpleGATTprofile.c
+ @file  Keyboard Dongle profile.c
 
- @brief This file contains the Simple GATT profile sample GATT service profile
+ @brief This file contains the Keyboard Dongle profile sample GATT service profile
         for use with the BLE sample application.
 
  Group: WCS, BTS
@@ -134,7 +134,7 @@ CONST uint8 consumerReportCharUUID[ATT_UUID_SIZE] =
  * LOCAL VARIABLES
  */
 
-static keyboardDongleProfileCBs_t *simpleProfile_AppCBs = NULL;
+static keyboardDongleProfileCBs_t *keyboardDongleProfile_AppCBs = NULL;
 
 /*********************************************************************
  * Profile Attributes - variables
@@ -212,7 +212,7 @@ static uint8 consumerReportCharUserDesp[9] = "CONSUMER";
  * Profile Attributes - Table
  */
 
-static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] = 
+static gattAttribute_t keyboardDongleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] = 
 {
   // Keyboard Dongle Profile Service
   { 
@@ -378,21 +378,21 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
-static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
+static bStatus_t keyboardDongleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
                                            uint8 *pValue, uint8 *pLen, uint16 offset,
                                            uint8 maxLen, uint8 method );
-static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
+static bStatus_t keyboardDongleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
                                             uint8 *pValue, uint8 len, uint16 offset,
                                             uint8 method );
 
 /*********************************************************************
  * PROFILE CALLBACKS
  */
-// Simple Profile Service Callbacks
-CONST gattServiceCBs_t simpleProfileCBs =
+// Keyboard Dongle Profile Service Callbacks
+CONST gattServiceCBs_t keyboardDongleProfileCBs =
 {
-  simpleProfile_ReadAttrCB,  // Read callback function pointer
-  simpleProfile_WriteAttrCB, // Write callback function pointer
+  keyboardDongleProfile_ReadAttrCB,  // Read callback function pointer
+  keyboardDongleProfile_WriteAttrCB, // Write callback function pointer
   NULL                       // Authorization callback function pointer
 };
 
@@ -422,9 +422,9 @@ bStatus_t utilExtractUuid16(gattAttribute_t *pAttr, uint16 *pUuid)
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_AddService
+ * @fn      KeyboardDongleProfile_AddService
  *
- * @brief   Initializes the Simple Profile service by registering
+ * @brief   Initializes the Keyboard Dongle Profile service by registering
  *          GATT attributes with the GATT server.
  *
  * @param   services - services to add. This is a bit map and can
@@ -432,7 +432,7 @@ bStatus_t utilExtractUuid16(gattAttribute_t *pAttr, uint16 *pUuid)
  *
  * @return  Success or Failure
  */
-bStatus_t SimpleProfile_AddService( uint32 services )
+bStatus_t KeyboardDongleProfile_AddService( uint32 services )
 {
   uint8 status;
   
@@ -450,10 +450,10 @@ bStatus_t SimpleProfile_AddService( uint32 services )
   if ( services & KBD_DONGLE_SERVICE )
   {
     // Register GATT attribute list and CBs with GATT Server App
-    status = GATTServApp_RegisterService( simpleProfileAttrTbl, 
-                                          GATT_NUM_ATTRS( simpleProfileAttrTbl ),
+    status = GATTServApp_RegisterService( keyboardDongleProfileAttrTbl, 
+                                          GATT_NUM_ATTRS( keyboardDongleProfileAttrTbl ),
                                           GATT_MAX_ENCRYPT_KEY_SIZE,
-                                          &simpleProfileCBs );
+                                          &keyboardDongleProfileCBs );
   }
   else
   {
@@ -464,7 +464,7 @@ bStatus_t SimpleProfile_AddService( uint32 services )
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_RegisterAppCBs
+ * @fn      KeyboardDongleProfile_RegisterAppCBs
  *
  * @brief   Registers the application callback function. Only call 
  *          this function once.
@@ -473,11 +473,11 @@ bStatus_t SimpleProfile_AddService( uint32 services )
  *
  * @return  SUCCESS or bleAlreadyInRequestedMode
  */
-bStatus_t SimpleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks )
+bStatus_t KeyboardDongleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks )
 {
   if ( appCallbacks )
   {
-    simpleProfile_AppCBs = appCallbacks;
+    keyboardDongleProfile_AppCBs = appCallbacks;
     
     return ( SUCCESS );
   }
@@ -488,9 +488,9 @@ bStatus_t SimpleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_SetParameter
+ * @fn      KeyboardDongleProfile_SetParameter
  *
- * @brief   Set a Simple Profile parameter.
+ * @brief   Set a Keyboard Dongle Profile parameter.
  *
  * @param   param - Profile parameter ID
  * @param   len - length of data to write
@@ -501,7 +501,7 @@ bStatus_t SimpleProfile_RegisterAppCBs( keyboardDongleProfileCBs_t *appCallbacks
  *
  * @return  bStatus_t
  */
-bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
+bStatus_t KeyboardDongleProfile_SetParameter( uint8 param, uint8 len, void *value )
 {
   bStatus_t ret = SUCCESS;
   switch ( param )
@@ -546,8 +546,8 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
         
         // See if Notification has been enabled
         GATTServApp_ProcessCharCfg( keyboardLedCharConfig, &keyboardLedChar, FALSE,
-                                    simpleProfileAttrTbl, GATT_NUM_ATTRS( simpleProfileAttrTbl ),
-                                    INVALID_TASK_ID, simpleProfile_ReadAttrCB );
+                                    keyboardDongleProfileAttrTbl, GATT_NUM_ATTRS( keyboardDongleProfileAttrTbl ),
+                                    INVALID_TASK_ID, keyboardDongleProfile_ReadAttrCB );
       }
       else
       {
@@ -586,9 +586,9 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_GetParameter
+ * @fn      KeyboardDongleProfile_GetParameter
  *
- * @brief   Get a Simple Profile parameter.
+ * @brief   Get a Keyboard Dongle Profile parameter.
  *
  * @param   param - Profile parameter ID
  * @param   value - pointer to data to put.  This is dependent on
@@ -598,7 +598,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
  *
  * @return  bStatus_t
  */
-bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
+bStatus_t KeyboardDongleProfile_GetParameter( uint8 param, void *value )
 {
   bStatus_t ret = SUCCESS;
   switch ( param )
@@ -640,7 +640,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
 }
 
 /*********************************************************************
- * @fn          simpleProfile_ReadAttrCB
+ * @fn          keyboardDongleProfile_ReadAttrCB
  *
  * @brief       Read an attribute.
  *
@@ -654,7 +654,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
  *
  * @return      SUCCESS, blePending or Failure
  */
-static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
+static bStatus_t keyboardDongleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
                                            uint8 *pValue, uint8 *pLen, uint16 offset,
                                            uint8 maxLen, uint8 method )
 {
@@ -698,7 +698,7 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
 }
 
 /*********************************************************************
- * @fn      simpleProfile_WriteAttrCB
+ * @fn      keyboardDongleProfile_WriteAttrCB
  *
  * @brief   Validate attribute data prior to a write operation
  *
@@ -711,7 +711,7 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
  *
  * @return  SUCCESS, blePending or Failure
  */
-static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
+static bStatus_t keyboardDongleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
                                             uint8 *pValue, uint8 len, uint16 offset,
                                             uint8 method )
 {
@@ -845,9 +845,9 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
 
 
   // If a charactersitic value changed then callback function to notify application of change
-  if ( (notifyApp != 0xFF ) && simpleProfile_AppCBs && simpleProfile_AppCBs->pfnKeyboardDongleProfileChange )
+  if ( (notifyApp != 0xFF ) && keyboardDongleProfile_AppCBs && keyboardDongleProfile_AppCBs->pfnKeyboardDongleProfileChange )
   {
-    simpleProfile_AppCBs->pfnKeyboardDongleProfileChange( notifyApp );  
+    keyboardDongleProfile_AppCBs->pfnKeyboardDongleProfileChange( notifyApp );  
   }
   
   return ( status );

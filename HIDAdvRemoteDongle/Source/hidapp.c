@@ -193,7 +193,7 @@ static void hidappHandleKeys( uint8 keys, uint8 state );
 
 static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
-static void simpleProfileChangeCB( uint8 paramID );
+static void keyboardDongleProfileChangeCB( uint8 paramID );
 
 static bool hidReportBufferAppend( uint8 ep, uint8 data0, uint8 data1, uint8 data2, uint8 data3, uint8 data4, uint8 data5, uint8 data6, uint8 data7);
 static bool hidReportBufferShift();
@@ -270,8 +270,8 @@ static uint8 advertData[] =
   // in this peripheral
   0x03,   // length of this data
   GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
-  LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
-  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),*/
+  LO_UINT16( KBD_DONGLE_SERV_UUID ),
+  HI_UINT16( KBD_DONGLE_SERV_UUID ),*/
 
 };
 
@@ -293,10 +293,10 @@ static gapBondCBs_t hidapp_BondMgrCBs =
   NULL                      // Pairing / Bonding state Callback (not used by application)
 };
 
-// Simple GATT Profile Callbacks
-static keyboardDongleProfileCBs_t hidapp_SimpleProfileCBs =
+// Keyboard Dongle Profile Callbacks
+static keyboardDongleProfileCBs_t hidapp_KeyboardDongleProfileCBs =
 {
-  simpleProfileChangeCB    // Charactersitic value change callback
+  keyboardDongleProfileChangeCB    // Charactersitic value change callback
 };
 
 static HID_REPORT_EPDATA_t hidReportBuffer[HID_REPORT_BUFFER_LEN];
@@ -390,9 +390,9 @@ void Hidapp_Init( uint8 taskId )
   GGS_AddService( GATT_ALL_SERVICES );            // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
   DevInfo_AddService();                           // Device Information Service
-  SimpleProfile_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
+  KeyboardDongleProfile_AddService( GATT_ALL_SERVICES );  // Keyboard Dongle Profile
 
-  // Setup the SimpleProfile Characteristic Values
+  // Setup the KeyboardDongleProfile Characteristic Values
   {
     uint8 charValue1 = 0;
     uint8 charValue2 = 0;
@@ -400,16 +400,16 @@ void Hidapp_Init( uint8 taskId )
     uint8 charValue4 = 0;
     uint8 charValue5 = 0;
     uint8 charValue6 = 0;
-    SimpleProfile_SetParameter( KEYBOARD_PRESS_CHAR, sizeof ( uint8 ), &charValue1 );
-    SimpleProfile_SetParameter( KEYBOARD_TYPE_CHAR, sizeof ( uint8 ), &charValue2 );
-    SimpleProfile_SetParameter( KEYBOARD_REPORT_CHAR, sizeof ( uint8 ), &charValue3 );
-    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &charValue4 );
-    SimpleProfile_SetParameter( MOUSE_MOVE_CHAR, sizeof ( uint8 ), &charValue5 );
-    SimpleProfile_SetParameter( CONSUMER_REPORT_CHAR, sizeof ( uint8 ), &charValue6 );
+    KeyboardDongleProfile_SetParameter( KEYBOARD_PRESS_CHAR, sizeof ( uint8 ), &charValue1 );
+    KeyboardDongleProfile_SetParameter( KEYBOARD_TYPE_CHAR, sizeof ( uint8 ), &charValue2 );
+    KeyboardDongleProfile_SetParameter( KEYBOARD_REPORT_CHAR, sizeof ( uint8 ), &charValue3 );
+    KeyboardDongleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &charValue4 );
+    KeyboardDongleProfile_SetParameter( MOUSE_MOVE_CHAR, sizeof ( uint8 ), &charValue5 );
+    KeyboardDongleProfile_SetParameter( CONSUMER_REPORT_CHAR, sizeof ( uint8 ), &charValue6 );
   }
 
-  // Register callback with SimpleGATTprofile
-  VOID SimpleProfile_RegisterAppCBs( &hidapp_SimpleProfileCBs );
+  // Register callback with Keyboard Dongle Profile
+  VOID KeyboardDongleProfile_RegisterAppCBs( &hidapp_KeyboardDongleProfileCBs );
 
   // Enable clock divide on halt
   // This reduces active current while radio is active and CC254x MCU
@@ -579,7 +579,7 @@ void usbHidAppPoll(void) {
   static uint8 previousLedStatus=0;
   uint8 ledStatus=hidData.keyboardOutReport.ledStatus; 
   if (previousLedStatus!=ledStatus){
-    SimpleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &ledStatus );
+    KeyboardDongleProfile_SetParameter( KEYBOARD_LED_CHAR, sizeof ( uint8 ), &ledStatus );
     previousLedStatus=ledStatus;
   }
 }
@@ -743,7 +743,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
  * @brief   Perform a periodic application task. This function gets
  *          called every five seconds as a result of the SBP_PERIODIC_EVT
  *          OSAL event. In this example, the value of the third
- *          characteristic in the SimpleGATTProfile service is retrieved
+ *          characteristic in the Keyboard Dongle Profile service is retrieved
  *          from the profile, and then copied into the value of the
  *          the fourth characteristic.
  *
@@ -759,21 +759,21 @@ static void performPeriodicTask( void )
 }
 
 /*********************************************************************
- * @fn      simpleProfileChangeCB
+ * @fn      keyboardDongleProfileChangeCB
  *
- * @brief   Callback from SimpleBLEProfile indicating a value change
+ * @brief   Callback from Keyboard Dongle Profile indicating a value change
  *
  * @param   paramID - parameter ID of the value that was changed.
  *
  * @return  none
  */
-static void simpleProfileChangeCB( uint8 paramID )
+static void keyboardDongleProfileChangeCB( uint8 paramID )
 {
   uint8 newValue;
 
   switch( paramID ){
     case KEYBOARD_PRESS_CHAR:
-      SimpleProfile_GetParameter( KEYBOARD_PRESS_CHAR, &newValue );
+      KeyboardDongleProfile_GetParameter( KEYBOARD_PRESS_CHAR, &newValue );
       if (newValue<128){
         uint8 hidCode = HIDTable[newValue];
         uint8 modifierCode = modifierTable[newValue];
@@ -792,7 +792,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case KEYBOARD_TYPE_CHAR:
     {
       uint8 typeData[9];
-      SimpleProfile_GetParameter( KEYBOARD_TYPE_CHAR, typeData );
+      KeyboardDongleProfile_GetParameter( KEYBOARD_TYPE_CHAR, typeData );
       int stringLen = strlen((const char *)typeData);
       if (stringLen>8) stringLen=8;
       for (uint8 i=0;i<stringLen;i++){
@@ -817,7 +817,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case KEYBOARD_REPORT_CHAR:
       {
         uint8 reportData[8];
-        SimpleProfile_GetParameter( KEYBOARD_REPORT_CHAR, reportData );
+        KeyboardDongleProfile_GetParameter( KEYBOARD_REPORT_CHAR, reportData );
         if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
           hidReportBufferAppend(USB_HID_KBD_EP,reportData[0],reportData[1],reportData[2],reportData[3],reportData[4],reportData[5],reportData[6],reportData[7]);
           reportRetries = 0;
@@ -830,7 +830,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case MOUSE_MOVE_CHAR:
       {
         uint8 reportData[MOUSE_MOVE_CHAR_LEN];
-        SimpleProfile_GetParameter( MOUSE_MOVE_CHAR, reportData );
+        KeyboardDongleProfile_GetParameter( MOUSE_MOVE_CHAR, reportData );
         if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
           hidReportBufferAppend(USB_HID_MOUSE_EP,reportData[0],reportData[1],reportData[2],reportData[3],0,0,0,0);
           reportRetries = 0;
@@ -843,7 +843,7 @@ static void simpleProfileChangeCB( uint8 paramID )
     case CONSUMER_REPORT_CHAR:
       {
         uint8 reportData[2];
-        SimpleProfile_GetParameter( CONSUMER_REPORT_CHAR, reportData );
+        KeyboardDongleProfile_GetParameter( CONSUMER_REPORT_CHAR, reportData );
         if (hidReportBufLength<(HID_REPORT_BUFFER_LEN)){
           hidReportBufferAppend(USB_HID_CC_EP,reportData[0],reportData[1],0,0,0,0,0,0);
           reportRetries = 0;
