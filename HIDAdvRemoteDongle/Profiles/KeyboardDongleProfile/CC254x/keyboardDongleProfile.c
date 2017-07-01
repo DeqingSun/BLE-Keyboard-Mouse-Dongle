@@ -60,7 +60,7 @@
 #include "gattservapp.h"
 #include "gapbondmgr.h"
 
-#include "simpleGATTprofile.h"
+#include "keyboardDongleProfile.h"
 
 /*********************************************************************
  * MACROS

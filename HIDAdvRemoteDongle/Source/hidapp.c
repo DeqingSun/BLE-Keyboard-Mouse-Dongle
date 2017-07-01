@@ -91,7 +91,7 @@
 #include "gapgattserver.h"
 #include "gattservapp.h"
 #include "devinfoservice.h"
-#include "simpleGATTprofile.h"
+#include "keyboardDongleProfile.h"
 
 #include "peripheral.h"
 

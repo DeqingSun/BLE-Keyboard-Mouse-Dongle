@@ -501,8 +501,8 @@
           <state>$PROJ_DIR$\..\common\cc2540</state>
           <state>$PROJ_DIR$\..\Profiles\Roles\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Roles</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile</state>
+          <state>$PROJ_DIR$\..\Profiles\KeyboardDongleProfile\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\KeyboardDongleProfile</state>
           <state>$PROJ_DIR$\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
         </option>
@@ -1496,10 +1496,10 @@
       <name>$PROJ_DIR$\..\Profiles\Roles\CC254x\peripheral.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x\simpleGATTprofile.c</name>
+      <name>$PROJ_DIR$\..\Profiles\KeyboardDongleProfile\CC254x\keyboardDongleProfile.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
+      <name>$PROJ_DIR$\..\Profiles\KeyboardDongleProfile\keyboardDongleProfile.h</name>
     </file>
   </group>
   <group>
