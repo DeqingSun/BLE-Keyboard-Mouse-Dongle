@@ -1,71 +1,121 @@
 <html>
 <header>
+    <script src="./jslib/nipplejs.min.js"></script>
+    <script src="./jslib/keyboarddongle.js"></script>
     <title>This is title</title>
 </header>
 
 <body>
     Hello world
     <button type="button" id="buttonConnect">Connect</button>
-
+    <button type="button" id="buttonTest">Test</button>
 
     <script>
-        class KeyboardDongle {
-
-            constructor() {
-                this.device = null;
-                this.onDisconnected = this.onDisconnected.bind(this);
-            }
-
-            request() {
-                let options = {
-                    "filters": [{
-                        "namePrefix": "KBD"
-                        , "services": ["a6310000-f090-4a97-8de8-4848ca7238eb"]
-      }]
-                };
-                return navigator.bluetooth.requestDevice(options)
-                    .then(device => {
-                        this.device = device;
-                        this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
-                    });
-            }
-
-            connect() {
-                if (!this.device) {
-                    return Promise.reject('Device is not connected.');
-                }
-                return this.device.gatt.connect();
-            }
-
-            writeTypeCharacter(data) {
-                return this.device.gatt.getPrimaryService("a6310000-f090-4a97-8de8-4848ca7238eb")
-                    .then(service => service.getCharacteristic("a6310001-f090-4a97-8de8-4848ca7238eb"))
-                    .then(characteristic => characteristic.writeValue(data));
-            }
-
-            disconnect() {
-                if (!this.device) {
-                    return Promise.reject('Device is not connected.');
-                }
-                return this.device.gatt.disconnect();
-            }
-
-            onDisconnected() {
-                console.log('Device is disconnected.');
-            }
-        }
-
         var keyboardDongle = new KeyboardDongle();
 
-        document.querySelector('button').addEventListener('click', event => {
+        document.getElementById('buttonConnect').addEventListener('click', event => {
             keyboardDongle.request()
                 .then(_ => keyboardDongle.connect())
-                .then(_ => { /* Do something with keyboardDongle... */ })
+                .then(_ => {
+                    console.log("Connect OK")
+                })
                 .catch(error => {
                     console.log(error)
                 });
         });
+
+
+        var timeStart = 0;
+
+        document.getElementById('buttonTest').addEventListener('click', event => {
+            clearInterval(mouseTimerID);
+            mouseTimerID = setInterval(sendMouseReport, 0);
+        });
+
+        var mouseTimerID = null;
+        var mouseInProgress = false;
+        var mouseData = [0, 0, 0, 0];
+
+        function sendMouseReport() {
+            clearInterval(mouseTimerID);
+            if (mouseInProgress) {
+                mouseTimerID = setInterval(sendMouseReport, 10);
+            } else {
+                mouseInProgress = true;
+                timeStart = Date.now();
+                keyboardDongle.writeMouseCharacter(new Uint8Array(mouseData))
+                    .then(_ => {
+                        mouseInProgress = false;
+                        //console.log("Move OK");
+                        //console.log(Date.now() - timeStart);
+                        var moveAgain = false;
+                        for (var i = 0; i < 4; i++) {
+                            if (mouseData[i] != 0) moveAgain = true;
+                        }
+                        if (moveAgain) {
+                            clearInterval(mouseTimerID);
+                            mouseTimerID = setInterval(sendMouseReport, 50);
+                        }
+                    })
+                    .catch(error => {
+                        mouseInProgress = false;
+                        console.log(error)
+                    });
+            }
+        }
     </script>
+
+
+
+    <div id="zone_joystick"></div>
+
+
+    <script>
+        var staticJoystick = nipplejs.create({
+            zone: document.getElementById('zone_joystick')
+            , mode: 'static'
+            , position: {
+                left: '50%'
+                , top: '50%'
+            }
+            , color: 'red'
+        });
+
+        staticJoystick.on('start end', function (evt, data) {
+            if (evt.type == 'start') {
+                //console.log('start');
+            } else if (evt.type == 'end') {
+                //console.log('end');
+                mouseData[1] = 0;
+                mouseData[2] = 0;
+            }
+            //console.log(evt);
+        }).on('move', function (evt, data) {
+            var x = data.force * Math.cos(data.angle.radian);
+            var y = -data.force * Math.sin(data.angle.radian);
+            //console.log(x,y);
+
+            var intX = Math.round(x);
+            var intY = Math.round(y);
+
+
+            if (intX < 0) intX = 256 + intX;
+            if (intY < 0) intY = 256 + intY;
+
+            //console.log(intX, intY);
+
+            if (mouseData[1] != intX || mouseData[2] != intY) {
+                mouseData[1] = intX;
+                mouseData[2] = intY;
+                clearInterval(mouseTimerID);
+                mouseTimerID = setInterval(sendMouseReport, 10);
+            }
+
+        })
+    </script>
+
+
+
 </body>
 
 </html>
