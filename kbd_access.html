@@ -174,9 +174,14 @@
         mouseLeftButton.addEventListener('mousedown', event => mouseButtonHandler(0, 1));
         mouseLeftButton.addEventListener('mouseup', event => mouseButtonHandler(0, 0));
         mouseLeftButton.addEventListener('mouseout', event => mouseButtonHandler(0, 0));
+        mouseLeftButton.addEventListener('touchstart', event => mouseButtonHandler(0, 1));
+        mouseLeftButton.addEventListener('touchend', event => mouseButtonHandler(0, 0));
+
         mouseRightButton.addEventListener('mousedown', event => mouseButtonHandler(1, 1));
         mouseRightButton.addEventListener('mouseup', event => mouseButtonHandler(1, 0));
         mouseRightButton.addEventListener('mouseout', event => mouseButtonHandler(1, 0));
+        mouseRightButton.addEventListener('touchstart', event => mouseButtonHandler(1, 1));
+        mouseRightButton.addEventListener('touchend', event => mouseButtonHandler(1, 0));
 
         var nippleJSoptions = {
             zone: document.getElementById('mouse_joystick')
