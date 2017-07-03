@@ -1,23 +1,65 @@
 <html>
 <header>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
     <script src="./jslib/nipplejs.min.js"></script>
     <script src="./jslib/keyboarddongle.js"></script>
-    <title>This is title</title>
+    <title>KeyboardDongleControl</title>
+    <style type="text/css">
+        p {
+            font-size: 12px;
+            color: dimgray;
+            text-align: center;
+        }
+        
+        .center {
+            text-align: center;
+        }
+        
+        .mouseButton {
+            position: absolute;
+            display: block;
+            background: red;
+            opacity: .5;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            vertical-align: middle;
+            transition: opacity .1s ease-in-out;
+        }
+        
+        .mouseBTNText {}
+        
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
 </header>
 
 <body>
-    Hello world
-    <button type="button" id="buttonConnect">Connect</button>
-    <button type="button" id="buttonTest">Test</button>
+    <div id="connectStatus" style="position: absolute; display: block; top: 2%; left: 2%;">
+        <div id="connectStatusCircle" style="opacity: 0.8; background: red; border-radius: 50%; float: left;"></div>
+        <div id="connectStatusText" class="unselectable" style="float: right; vertical-align: middle;">Not Connected</div>
+    </div>
+    <div id="mouse_joystick" class="center"></div>
+    <div id="mouse_left" class="mouseButton unselectable">L</div>
+    <div id="mouse_right" class="mouseButton unselectable">R</div>
+    <p>drag to xxx</p>
 
     <script>
         var keyboardDongle = new KeyboardDongle();
 
-        document.getElementById('buttonConnect').addEventListener('click', event => {
+        document.getElementById('connectStatus').addEventListener('click', event => {
             keyboardDongle.request()
                 .then(_ => keyboardDongle.connect())
                 .then(_ => {
-                    console.log("Connect OK")
+                    document.getElementById('connectStatusText').innerHTML = "Connected to " + keyboardDongle.device.name;
+                    document.getElementById('connectStatusCircle').style.backgroundColor = 'green';
+                    //console.log("Connect OK")
                 })
                 .catch(error => {
                     console.log(error)
@@ -27,10 +69,10 @@
 
         var timeStart = 0;
 
-        document.getElementById('buttonTest').addEventListener('click', event => {
+        /*document.getElementById('buttonTest').addEventListener('click', event => {
             clearInterval(mouseTimerID);
             mouseTimerID = setInterval(sendMouseReport, 0);
-        });
+        });*/
 
         var mouseTimerID = null;
         var mouseInProgress = false;
@@ -47,9 +89,9 @@
                     .then(_ => {
                         mouseInProgress = false;
                         //console.log("Move OK");
-                        //console.log(Date.now() - timeStart);
+                        console.log("delay:", Date.now() - timeStart);
                         var moveAgain = false;
-                        for (var i = 0; i < 4; i++) {
+                        for (var i = 1; i < 4; i++) {
                             if (mouseData[i] != 0) moveAgain = true;
                         }
                         if (moveAgain) {
@@ -66,20 +108,88 @@
     </script>
 
 
-
-    <div id="zone_joystick"></div>
-
-
     <script>
-        var staticJoystick = nipplejs.create({
-            zone: document.getElementById('zone_joystick')
+        var windowWidth, windowHeight; {
+            var w = window
+                , d = document
+                , e = d.documentElement
+                , g = d.getElementsByTagName('body')[0];
+            windowWidth = w.innerWidth || e.clientWidth || g.clientWidth;
+            windowHeight = w.innerHeight || e.clientHeight || g.clientHeight;
+
+        }
+        var dimensionLonger = Math.max(windowWidth, windowHeight);
+        var dimensionShorter = Math.min(windowWidth, windowHeight);
+        var dimensionLongerHalf = dimensionLonger / 2;
+        console.log(windowWidth + ' × ' + windowHeight);
+
+        var connectStatusCircle = document.getElementById('connectStatusCircle');
+        connectStatusCircle.style.width = connectStatusCircle.style.height = Math.round(dimensionShorter * .05) + 'px';
+        document.getElementById('connectStatusText').style.lineHeight = connectStatusCircle.style.height;
+
+        var mouseLeftButton = document.getElementById('mouse_left');
+        var mouseRightButton = document.getElementById('mouse_right');
+        var mouseButtonWidth = Math.round((windowWidth > windowHeight) ? (dimensionLongerHalf * .4) : (dimensionShorter * .4));
+        var mouseButtonHeight = Math.round((windowWidth > windowHeight) ? (dimensionShorter * .4) : (dimensionLongerHalf * .8));
+        mouseLeftButton.style.width = mouseRightButton.style.width = mouseButtonWidth.toString() + 'px';
+        mouseLeftButton.style.height = mouseRightButton.style.height = mouseButtonHeight.toString() + 'px';
+        mouseLeftButton.style.lineHeight = mouseRightButton.style.lineHeight = mouseButtonHeight.toString() + 'px';
+        mouseLeftButton.style.fontSize = mouseRightButton.style.fontSize = mouseButtonHeight.toString() + 'px';
+
+        if (windowWidth > windowHeight) {
+            mouseLeftButton.style.left = '62.5%';
+            mouseRightButton.style.left = '87.5%';
+            mouseLeftButton.style.top = mouseRightButton.style.top = '50%';
+            mouseLeftButton.style.marginTop = mouseRightButton.style.marginTop = '-' + (mouseButtonHeight / 2).toString() + 'px';
+            mouseLeftButton.style.marginLeft = mouseRightButton.style.marginLeft = '-' + (mouseButtonWidth / 2).toString() + 'px';
+        } else {
+            mouseLeftButton.style.left = '25%';
+            mouseRightButton.style.left = '75%';
+            mouseLeftButton.style.top = mouseRightButton.style.top = '75%';
+            mouseLeftButton.style.marginTop = mouseRightButton.style.marginTop = '-' + (mouseButtonHeight / 2).toString() + 'px';
+            mouseLeftButton.style.marginLeft = mouseRightButton.style.marginLeft = '-' + (mouseButtonWidth / 2).toString() + 'px';
+        }
+
+        function mouseButtonHandler(button, value) {
+            if (mouseData[0] == 0 && value == 0) return;
+            if (button == 0) {
+                mouseLeftButton.style.opacity = (value != 0) ? '0.8' : '0.5';
+                if ((value != 0)) {
+                    mouseData[0] |= 1;
+                } else {
+                    mouseData[0] &= ~1;
+                }
+            } else if (button == 1) {
+                mouseRightButton.style.opacity = (value != 0) ? '0.8' : '0.5';
+                if ((value != 0)) {
+                    mouseData[0] |= 2;
+                } else {
+                    mouseData[0] &= ~2;
+                }
+            }
+            clearInterval(mouseTimerID);
+            mouseTimerID = setInterval(sendMouseReport, 10);
+        }
+
+        mouseLeftButton.addEventListener('mousedown', event => mouseButtonHandler(0, 1));
+        mouseLeftButton.addEventListener('mouseup', event => mouseButtonHandler(0, 0));
+        mouseLeftButton.addEventListener('mouseout', event => mouseButtonHandler(0, 0));
+        mouseRightButton.addEventListener('mousedown', event => mouseButtonHandler(1, 1));
+        mouseRightButton.addEventListener('mouseup', event => mouseButtonHandler(1, 0));
+        mouseRightButton.addEventListener('mouseout', event => mouseButtonHandler(1, 0));
+
+        var nippleJSoptions = {
+            zone: document.getElementById('mouse_joystick')
             , mode: 'static'
             , position: {
-                left: '50%'
-                , top: '50%'
+                left: ((windowWidth > windowHeight) ? '25%' : '50%')
+                , top: ((windowWidth <= windowHeight) ? '25%' : '50%')
             }
             , color: 'red'
-        });
+            , size: Math.min(dimensionShorter, dimensionLongerHalf) * .8 //set to 25% screen width
+        };
+
+        var staticJoystick = nipplejs.create(nippleJSoptions);
 
         staticJoystick.on('start end', function (evt, data) {
             if (evt.type == 'start') {
@@ -95,8 +205,8 @@
             var y = -data.force * Math.sin(data.angle.radian);
             //console.log(x,y);
 
-            var intX = Math.round(x);
-            var intY = Math.round(y);
+            var intX = Math.round(x * 4);
+            var intY = Math.round(y * 4);
 
 
             if (intX < 0) intX = 256 + intX;
