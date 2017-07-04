@@ -47,6 +47,7 @@
         <div id="connectStatusCircle" style="opacity: 0.8; background: red; border-radius: 50%; float: left;"></div>
         <div id="connectStatusText" class="unselectable" style="float: right; vertical-align: middle;">Not Connected</div>
     </div>
+    <div id="switchKBD" class="unselectable" style="position: absolute; display: block; top: 2%; right: 2%; opacity: 0.8; background: yellow; color: grey; text-align: center; vertical-align: middle;">keyboard</div>
     <div id="mouse_joystick" class="center"></div>
     <div id="mouse_left" class="mouseButton unselectable">L</div>
     <div id="mouse_right" class="mouseButton unselectable">R</div>
@@ -66,6 +67,20 @@
                     console.log(error)
                 });
         });
+
+        var currentUI = 'mouse';
+        document.getElementById('switchKBD').addEventListener('click', event => {
+            if (currentUI == 'mouse') {
+                switchMouseUI(false);
+                currentUI='keyboard';
+                document.getElementById('switchKBD').innerHTML='mouse';
+            }else if (currentUI == 'keyboard') {
+                switchMouseUI(true);
+                currentUI='mouse';
+                document.getElementById('switchKBD').innerHTML='keyboard';
+            }
+        });
+
 
         var timeStart = 0;
 

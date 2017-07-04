@@ -11,11 +11,18 @@ function uiInit() {
     var dimensionLonger = Math.max(windowWidth, windowHeight);
     var dimensionShorter = Math.min(windowWidth, windowHeight);
     var dimensionLongerHalf = dimensionLonger / 2;
-    console.log(windowWidth + ' × ' + windowHeight);
+    console.log(windowWidth + ' X ' + windowHeight);
 
     var connectStatusCircle = document.getElementById('connectStatusCircle');
     connectStatusCircle.style.width = connectStatusCircle.style.height = Math.round(dimensionShorter * .05) + 'px';
     document.getElementById('connectStatusText').style.lineHeight = connectStatusCircle.style.height;
+
+    var switchKBD = document.getElementById('switchKBD');
+    switchKBD.style.height = Math.round(dimensionShorter * .05) + 'px';
+    switchKBD.style.width = Math.round(dimensionShorter * .15) + 'px';
+    switchKBD.style.borderRadius = Math.round(dimensionShorter * .025) + 'px';
+    switchKBD.style.lineHeight = switchKBD.style.height;
+    switchKBD.style.fontSize = switchKBD.style.borderRadius;
 
     var mouseButtonWidth = Math.round((windowWidth > windowHeight) ? (dimensionLongerHalf * .4) : (dimensionShorter * .4));
     var mouseButtonHeight = Math.round((windowWidth > windowHeight) ? (dimensionShorter * .4) : (dimensionLongerHalf * .8));
@@ -59,4 +66,16 @@ function uiInit() {
     staticJoystick[0].ui.front.style.lineHeight = nippleJSoptions.size * .5 + 'px';
     staticJoystick[0].ui.front.style.fontSize = nippleJSoptions.size * .125 + 'px';
 
+}
+
+function switchMouseUI(value) {
+    if (value) {
+        document.getElementById('mouse_joystick').style.display = 'initial';
+        document.getElementById('mouse_left').style.display = 'initial';
+        document.getElementById('mouse_right').style.display = 'initial';
+    } else {
+        document.getElementById('mouse_joystick').style.display = 'none';
+        document.getElementById('mouse_left').style.display = 'none';
+        document.getElementById('mouse_right').style.display = 'none';
+    }
 }
