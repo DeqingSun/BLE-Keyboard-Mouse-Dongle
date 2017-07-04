@@ -41,6 +41,7 @@
 </header>
 
 <body>
+    <div style="display: none;">This is a page control BLE keyboard dongle, move cursor, type letters.</div>
     <div id="connectStatus" style="position: absolute; display: block; top: 2%; left: 2%;">
         <div id="connectStatusCircle" style="opacity: 0.8; background: red; border-radius: 50%; float: left;"></div>
         <div id="connectStatusText" class="unselectable" style="float: right; vertical-align: middle;">Not Connected</div>
@@ -210,8 +211,8 @@
             var y = -data.force * Math.sin(data.angle.radian);
             //console.log(x,y);
 
-            var intX = Math.round(x * 4);
-            var intY = Math.round(y * 4);
+            var intX = Math.round(x * 8);
+            var intY = Math.round(y * 8);
 
 
             if (intX < 0) intX = 256 + intX;

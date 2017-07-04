@@ -220,19 +220,23 @@ static gaprole_States_t gapProfileState = GAPROLE_INIT;
 // GAP - SCAN RSP data (max size = 31 bytes)
 static uint8 scanRspData[] =
 {
-  // connection interval range
-  0x05,   // length of this data
-  GAP_ADTYPE_SLAVE_CONN_INTERVAL_RANGE,
-  LO_UINT16( DEFAULT_DESIRED_MIN_CONN_INTERVAL ),   // 10ms
-  HI_UINT16( DEFAULT_DESIRED_MIN_CONN_INTERVAL ),
-  LO_UINT16( DEFAULT_DESIRED_MAX_CONN_INTERVAL ),   // 25ms
-  HI_UINT16( DEFAULT_DESIRED_MAX_CONN_INTERVAL ),
   // service UUID, to notify central devices what services are included
   // in this peripheral
   0x11,   // length of this data
   GAP_ADTYPE_128BIT_MORE,      // some of the UUID's, but not all
   KBD_DONGLE_SERVICE_BASE_UUID_128(KBD_DONGLE_SERV_UUID),
-
+  
+  // complete name
+  0x09,   // length of this data
+  GAP_ADTYPE_LOCAL_NAME_COMPLETE,
+  'K',   // 'K'
+  'B',   // 'B'
+  'D',   // 'D'
+  ' ',   // ' '
+  '0',   // '0'
+  '0',   // '0'
+  '0',   // '0'
+  '0',   // '0'
 };
 
 // GAP - Advertisement data (max size = 31 bytes, though this is
@@ -246,12 +250,17 @@ static uint8 advertData[] =
   GAP_ADTYPE_FLAGS,
   DEFAULT_DISCOVERABLE_MODE | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
   
+  0x03,  // Length
+  GAP_ADTYPE_16BIT_MORE,  // Param: Service List
+  0xAA, 0xFE,  // Eddystone ID
+  
   // Tx power level
-  0x12,   // length of this data
+  0x13,   // length of this data
   GAP_ADTYPE_SERVICE_DATA,  // Service Data
-  0xD8, 0xFE, // URI Beacon ID
-  0x00,  // flags
+  0xAA, 0xFE, // URI Beacon ID
+  0x10,  // URL flag
   0xC5,  // power
+  0x03,  // https://
   'g',
   'o',
   'o',
@@ -265,20 +274,10 @@ static uint8 advertData[] =
   'g',
   'v',
   'Q',
-  // complete name
-  0x08,   // length of this data
-  GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  'K',   // 'K'
-  'B',   // 'B'
-  'D',   // 'D'
-  '0',   // '0'
-  '0',   // '0'
-  '0',   // '0'
-  '0',   // '0'
 };
 
 // GAP GATT Attributes
-static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "KBD0000";
+static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "KBD 0000";
 
 
 // GAP Role Callbacks
@@ -339,10 +338,10 @@ void Hidapp_Init( uint8 taskId )
       string3DescMEM[4+i*4]=toHex(primaryMac[5-i]&0x0F);
     }
     for (uint8 i=0;i<2;i++){
-      advertData[27+i*2]=toHex(primaryMac[1-i]>>4);
-      advertData[28+i*2]=toHex(primaryMac[1-i]&0x0F);
-      attDeviceName[3+i*2]=toHex(primaryMac[1-i]>>4);
-      attDeviceName[4+i*2]=toHex(primaryMac[1-i]&0x0F);
+      scanRspData[24+i*2]=toHex(primaryMac[1-i]>>4);
+      scanRspData[25+i*2]=toHex(primaryMac[1-i]&0x0F);
+      attDeviceName[4+i*2]=toHex(primaryMac[1-i]>>4);
+      attDeviceName[5+i*2]=toHex(primaryMac[1-i]&0x0F);
     }
   }
 
