@@ -49,7 +49,6 @@
     <div id="mouse_joystick" class="center"></div>
     <div id="mouse_left" class="mouseButton unselectable">L</div>
     <div id="mouse_right" class="mouseButton unselectable">R</div>
-    <p>drag to xxx</p>
 
     <script>
         var keyboardDongle = new KeyboardDongle();
@@ -196,6 +195,13 @@
         };
 
         var staticJoystick = nipplejs.create(nippleJSoptions);
+
+        staticJoystick[0].ui.front.innerHTML = 'drag';
+        staticJoystick[0].ui.front.style.color = 'white';
+        staticJoystick[0].ui.front.style.textAlign = 'center';
+        staticJoystick[0].ui.front.style.verticalAlign = 'middle';
+        staticJoystick[0].ui.front.style.lineHeight = nippleJSoptions.size * .5 + 'px';
+        staticJoystick[0].ui.front.style.fontSize = nippleJSoptions.size * .125 + 'px';
 
         staticJoystick.on('start end', function (evt, data) {
             if (evt.type == 'start') {
