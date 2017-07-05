@@ -45,15 +45,17 @@ class KeyboardDongle {
     }
 
     writeTypeCharacter(data) {
-        return this.device.gatt.getPrimaryService("a6310000-f090-4a97-8de8-4848ca7238eb")
-            .then(service => service.getCharacteristic("a6310001-f090-4a97-8de8-4848ca7238eb"))
-            .then(characteristic => characteristic.writeValue(data));
+        if (this.kbdTypeChar != null) {
+            return this.kbdTypeChar.writeValue(data);
+        } else {
+            return Promise.reject("not connected yet");
+        }
     }
 
     writeMouseCharacter(data) {
-        if (this.mouseChar != null){
+        if (this.mouseChar != null) {
             return this.mouseChar.writeValue(data);
-        }else{
+        } else {
             return Promise.reject("not connected yet");
         }
     }

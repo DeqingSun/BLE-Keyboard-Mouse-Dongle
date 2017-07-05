@@ -66,6 +66,53 @@ function uiInit() {
     staticJoystick[0].ui.front.style.lineHeight = nippleJSoptions.size * .5 + 'px';
     staticJoystick[0].ui.front.style.fontSize = nippleJSoptions.size * .125 + 'px';
 
+    var keyboardShift = false;
+    var keyboardCapslock = false;
+
+    var keyboardKeyPressHandler = function () {
+        var character = this.innerText;
+
+        if ((this.className.indexOf('left-shift') !== -1) || (this.className.indexOf('right-shift') !== -1)) {
+
+            var keyboardDiv = document.getElementById('keyboard');
+            for (var i = 0; i < keyboardDiv.childElementCount; i++) {
+                var childLi = keyboardDiv.children[i];
+                if (childLi.className.indexOf('letter') !== -1) {
+                    childLi.classList.toggle("uppercase");
+                }
+                if (childLi.className.indexOf('symbol') !== -1) {
+                    for (var j = 0; j < childLi.firstElementChild.childElementCount; j++) {
+                        var spanEle = childLi.firstElementChild.children[j];
+                        spanEle.classList.toggle('on');
+                        spanEle.classList.toggle('off');
+                    }
+                }
+            }
+            keyboardShift = (keyboardShift === true) ? false : true;
+            keyboardCapslock = false;
+            return false;
+        }
+
+        if (this.className.indexOf('capslock') !== -1) {
+            var keyboardDiv = document.getElementById('keyboard');
+            for (var i = 0; i < keyboardDiv.childElementCount; i++) {
+                var childLi = keyboardDiv.children[i];
+                if (childLi.className.indexOf('letter') !== -1) {
+                    childLi.classList.toggle("uppercase");
+                }
+            }
+            keyboardCapslock = true;
+            capslock = true;
+            return false;
+        }
+
+        if (keyPadPressed) keyPadPressed(character.trim());
+    };
+
+    var keyboardDiv = document.getElementById('keyboard');
+    for (var i = 0; i < keyboardDiv.childElementCount; i++) {
+        keyboardDiv.children[i].addEventListener('click', keyboardKeyPressHandler, false);
+    }
 }
 
 function switchMouseUI(value) {
@@ -77,5 +124,13 @@ function switchMouseUI(value) {
         document.getElementById('mouse_joystick').style.display = 'none';
         document.getElementById('mouse_left').style.display = 'none';
         document.getElementById('mouse_right').style.display = 'none';
+    }
+}
+
+function switchKeyboardUI(value) {
+    if (value) {
+        document.getElementById('keyboard_container').style.display = 'initial';
+    } else {
+        document.getElementById('keyboard_container').style.display = 'none';
     }
 }

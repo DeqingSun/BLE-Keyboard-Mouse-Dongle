@@ -38,6 +38,78 @@
             -ms-user-select: none;
             user-select: none;
         }
+        
+        #keyboard li {
+            float: left;
+            margin: 0 0.7% 0.5% 0;
+            width: 6.2%;
+            height: 19.5%;
+            line-height: 19.5%;
+            text-align: center;
+            background: lightgrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+        }
+        
+        .capslock,
+        .tab,
+        .left-shift {
+            clear: left;
+        }
+        
+        #keyboard .tab,
+        #keyboard .delete {
+            width: 9.6%;
+        }
+        
+        #keyboard .capslock {
+            width: 11.5%;
+        }
+        
+        #keyboard .return {
+            width: 11.2%;
+        }
+        
+        #keyboard .left-shift {
+            width: 13.4%;
+        }
+        
+        #keyboard .right-shift {
+            width: 16.2%;
+        }
+        
+        .lastitem {
+            margin-right: 0;
+        }
+        
+        .uppercase {
+            text-transform: uppercase;
+        }
+        
+        #keyboard .space {
+            clear: left;
+            width: 99.3%;
+        }
+        
+        .on {
+            display: none;
+        }
+        
+        #keyboard li:hover {
+            position: relative;
+            top: 0.1%;
+            left: 0.1%;
+            border-color: #e5e5e5;
+            cursor: pointer;
+        }
+        
+        .middleLetter {
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+        }
     </style>
 </header>
 
@@ -51,6 +123,172 @@
     <div id="mouse_joystick" class="center"></div>
     <div id="mouse_left" class="mouseButton unselectable">L</div>
     <div id="mouse_right" class="mouseButton unselectable">R</div>
+    <div id="keyboard_container" class="unselectable" style="position: absolute; display: block; top: 20%; left: 5%; width: 90%; height: 70%; display: none;">
+        <ul id="keyboard" style="margin: 0; adding: 0; list-style: none; padding: 0;width: 100%;">
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">`</span><span class="on">~</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">1</span><span class="on">!</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">2</span><span class="on">@</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">3</span><span class="on">#</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">4</span><span class="on">$</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">5</span><span class="on">%</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">6</span><span class="on">^</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">7</span><span class="on">&amp;</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">8</span><span class="on">*</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">9</span><span class="on">(</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">0</span><span class="on">)</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">-</span><span class="on">_</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">=</span><span class="on">+</span></div>
+            </li>
+            <li class="delete lastitem">
+                <div class="middleLetter">delete</div>
+            </li>
+            <li class="tab">
+                <div class="middleLetter">tab</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">q</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">w</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">e</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">r</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">t</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">y</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">u</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">i</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">o</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">p</div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">[</span><span class="on">{</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">]</span><span class="on">}</span></div>
+            </li>
+            <li class="symbol lastitem">
+                <div class="middleLetter"><span class="off">\</span><span class="on">|</span></div>
+            </li>
+            <li class="capslock">
+                <div class="middleLetter">caps lock</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">a</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">s</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">d</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">f</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">g</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">h</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">j</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">k</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">l</div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">;</span><span class="on">:</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">'</span><span class="on">&quot;</span></div>
+            </li>
+            <li class="return lastitem">
+                <div class="middleLetter">return</div>
+            </li>
+            <li class="left-shift">
+                <div class="middleLetter">shift</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">z</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">x</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">c</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">v</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">b</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">n</div>
+            </li>
+            <li class="letter">
+                <div class="middleLetter">m</div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">,</span><span class="on">&lt;</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">.</span><span class="on">&gt;</span></div>
+            </li>
+            <li class="symbol">
+                <div class="middleLetter"><span class="off">/</span><span class="on">?</span></div>
+            </li>
+            <li class="right-shift lastitem">
+                <div class="middleLetter">shift</div>
+            </li>
+            <li class="space lastitem">
+                <div class="middleLetter">&nbsp;</div>
+            </li>
+        </ul>
+    </div>
 
     <script>
         var keyboardDongle = new KeyboardDongle();
@@ -72,15 +310,16 @@
         document.getElementById('switchKBD').addEventListener('click', event => {
             if (currentUI == 'mouse') {
                 switchMouseUI(false);
-                currentUI='keyboard';
-                document.getElementById('switchKBD').innerHTML='mouse';
-            }else if (currentUI == 'keyboard') {
+                switchKeyboardUI(true);
+                currentUI = 'keyboard';
+                document.getElementById('switchKBD').innerHTML = 'mouse';
+            } else if (currentUI == 'keyboard') {
+                switchKeyboardUI(false);
                 switchMouseUI(true);
-                currentUI='mouse';
-                document.getElementById('switchKBD').innerHTML='keyboard';
+                currentUI = 'mouse';
+                document.getElementById('switchKBD').innerHTML = 'keyboard';
             }
         });
-
 
         var timeStart = 0;
 
@@ -88,10 +327,14 @@
         var mouseInProgress = false;
         var mouseData = [0, 0, 0, 0];
 
+        var keyboardTimerID = null;
+        var keyboardInProgress = false;
+        var keyboardValue = 0;
+
         function sendMouseReport() {
-            clearInterval(mouseTimerID);
-            if (mouseInProgress) {
-                mouseTimerID = setInterval(sendMouseReport, 10);
+            clearTimeout(mouseTimerID);
+            if (mouseInProgress || keyboardInProgress) {
+                mouseTimerID = setTimeout(sendMouseReport, 10);
             } else {
                 mouseInProgress = true;
                 timeStart = Date.now();
@@ -105,12 +348,31 @@
                             if (mouseData[i] != 0) moveAgain = true;
                         }
                         if (moveAgain) {
-                            clearInterval(mouseTimerID);
-                            mouseTimerID = setInterval(sendMouseReport, 50);
+                            clearTimeout(mouseTimerID);
+                            mouseTimerID = setTimeout(sendMouseReport, 50);
                         }
                     })
                     .catch(error => {
                         mouseInProgress = false;
+                        console.log(error)
+                    });
+            }
+        }
+
+        function sendKeyboardReport() {
+            clearTimeout(keyboardTimerID);
+            if (mouseInProgress || keyboardInProgress) {
+                keyboardTimerID = setTimeout(sendKeyboardReport, 10);
+            } else {
+                keyboardInProgress = true;
+                timeStart = Date.now();
+                keyboardDongle.writeTypeCharacter(new Uint8Array([keyboardValue]))
+                    .then(_ => {
+                        keyboardInProgress = false;
+                        console.log("delay:", Date.now() - timeStart);
+                    })
+                    .catch(error => {
+                        keyboardInProgress = false;
                         console.log(error)
                     });
             }
@@ -141,9 +403,35 @@
                     mouseData[0] &= ~2;
                 }
             }
-            clearInterval(mouseTimerID);
-            mouseTimerID = setInterval(sendMouseReport, 10);
-        }
+            clearTimeout(mouseTimerID);
+            mouseTimerID = setTimeout(sendMouseReport, 10);
+        };
+
+        var keyPadPressed = function (value) {
+            var keycode = 0;
+            if (value.length == 1) {
+                keycode = value.charCodeAt(0);
+            } else if (value.length == 0) {
+                keycode = ' '.charCodeAt(0);
+            } else {
+                switch (value) {
+                case 'tab':
+                    keycode = '\t'.charCodeAt(0);
+                    break;
+                case 'return':
+                    keycode = '\r'.charCodeAt(0);
+                    break;
+                case 'delete':
+                    keycode = '\b'.charCodeAt(0);
+                    break;
+                }
+            }
+            if (keycode != 0) {
+                keyboardValue = keycode;
+                clearTimeout(keyboardTimerID);
+                mouseTimerID = setTimeout(sendKeyboardReport, 10);
+            }
+        };
 
         uiInit();
 
@@ -185,8 +473,8 @@
             if (mouseData[1] != intX || mouseData[2] != intY) {
                 mouseData[1] = intX;
                 mouseData[2] = intY;
-                clearInterval(mouseTimerID);
-                mouseTimerID = setInterval(sendMouseReport, 10);
+                clearTimeout(mouseTimerID);
+                mouseTimerID = setTimeout(sendMouseReport, 10);
             }
 
         })
