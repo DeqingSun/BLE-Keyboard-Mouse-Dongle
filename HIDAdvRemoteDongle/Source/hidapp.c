@@ -259,7 +259,7 @@ static uint8 advertData[] =
   GAP_ADTYPE_SERVICE_DATA,  // Service Data
   0xAA, 0xFE, // URI Beacon ID
   0x10,  // URL flag
-  0xBA,  // power
+  0xC4,  // power
   0x03,  // https://
   'g',
   'o',
@@ -435,7 +435,7 @@ void Hidapp_Init( uint8 taskId )
   // is halted
   HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_ENABLE_CLK_DIVIDE_ON_HALT );
   
-  HCI_EXT_SetTxPowerCmd( HCI_EXT_TX_POWER_MINUS_23_DBM );
+  HCI_EXT_SetTxPowerCmd( HCI_EXT_TX_POWER_MINUS_6_DBM );
 
   // Setup a delayed profile startup
   osal_set_event( hidappTaskId, HIDAPP_START_DEVICE_EVT );
