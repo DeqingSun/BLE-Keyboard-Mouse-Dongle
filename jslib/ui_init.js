@@ -117,9 +117,9 @@ function uiInit() {
 
 function switchMouseUI(value) {
     if (value) {
-        document.getElementById('mouse_joystick').style.display = 'initial';
-        document.getElementById('mouse_left').style.display = 'initial';
-        document.getElementById('mouse_right').style.display = 'initial';
+        document.getElementById('mouse_joystick').style.display = '';
+        document.getElementById('mouse_left').style.display = '';
+        document.getElementById('mouse_right').style.display = '';
     } else {
         document.getElementById('mouse_joystick').style.display = 'none';
         document.getElementById('mouse_left').style.display = 'none';
@@ -129,7 +129,7 @@ function switchMouseUI(value) {
 
 function switchKeyboardUI(value) {
     if (value) {
-        document.getElementById('keyboard_container').style.display = 'initial';
+        document.getElementById('keyboard_container').style.display = '';
     } else {
         document.getElementById('keyboard_container').style.display = 'none';
     }
