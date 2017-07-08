@@ -8,6 +8,11 @@ Due to latency of Bluetooth low energy, this project is not a replacement of mou
 
 ![dongle on RPi](https://raw.githubusercontent.com/DeqingSun/BLE-Keyboard-Mouse-Dongle/master/images/dongleOnPi.jpg)
 
+## Link to controller's webpage
+
+
+https://deqingsun.github.io/BLE-Keyboard-Mouse-Dongle/kbd_access.html
+
 ## How it works
 
 
