@@ -11,7 +11,7 @@ Due to latency of Bluetooth low energy, this project is not a replacement of mou
 ## Link to controller's webpage
 
 
-https://deqingsun.github.io/BLE-Keyboard-Mouse-Dongle/kbd_access.html
+<https://deqingsun.github.io/BLE-Keyboard-Mouse-Dongle/kbd_access.html>
 
 ## How it works
 
@@ -44,11 +44,11 @@ In order to program them, I had to solder 3 wires, DC, DD and RST. Since there w
 
 Finally I used CC Debugger to re-flash all chips. I tried to use an Arduino as programmer but I didn't get setup correct. But it is worth trying if you don't have CC Debugger. Here are links:
 
-https://github.com/RedBearLab/CCLoader
+<https://github.com/RedBearLab/CCLoader>
 
-https://github.com/wavesoft/CCLib
+<https://github.com/wavesoft/CCLib>
 
-http://magictale.com/2884/flashing-ble112-with-arduino-based-cc-debugger/
+<http://magictale.com/2884/flashing-ble112-with-arduino-based-cc-debugger/>
 
 Once those dongle is re-flashed with new firmware, plug them to your Raspberry Pi and enjoy ~.
 
